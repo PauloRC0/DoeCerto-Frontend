@@ -39,3 +39,18 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+# CAPACITOR / BUILD WEB (MUITO IMPORTANTE)
+/android/app/src/main/assets/public/
+
+# PASTAS DE BUILD DO ANDROID
+/android/build/
+/android/app/build/
+
+# CACHE E METADADOS
+*.iml
+/android/.gradle/
+/android/app/.cxx/
+/android/.idea/
+/local.properties
