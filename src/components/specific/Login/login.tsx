@@ -46,7 +46,7 @@ export default function LoginPage() {
 
           <p className="text-base font-bold text-right -mt-4 mb-4">
             Ainda não possui conta?{" "}
-            <Link href="/register" className="text-{#E0C4FF} font-bold">
+            <Link href="/register" className="text-[#E0C4FF] font-bold">
               Cadastre-se
             </Link>
           </p>
