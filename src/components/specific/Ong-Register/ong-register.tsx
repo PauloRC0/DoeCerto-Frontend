@@ -75,7 +75,7 @@ export default function OngRegisterPage() {
                     
                     <p className="text-base text-right font-bold -mt-4 mb-4"> 
                         Já possui conta?{" "}
-                        <Link href="/login" className="font-bold text-white">
+                        <Link href="/login" className="font-bold text-[#E0C4FF]">
                             Fazer Login
                         </Link>
                     </p>
