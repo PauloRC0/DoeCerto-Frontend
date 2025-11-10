@@ -36,7 +36,7 @@ export default function RegisterChoicePage() {
       }`}
   >
     <FaUser />
-    DOA
+    DOADOR
   </button>
 
   <button
@@ -55,7 +55,7 @@ export default function RegisterChoicePage() {
 
 
         {/* Texto descritivo */}
-        <p className="text-sm mb-8 px-2 leading-snug">
+        <p className="text-base mb-8 px-2 leading-snug">
           {selected === "doa"
             ? "Como doador, você pode contribuir para diversas causas e acompanhar o impacto de suas doações."
             : "Como ONG, você pode cadastrar suas campanhas e receber doações para apoiar suas causas."}

@@ -30,7 +30,7 @@ export default function LoginPage() {
               id="email"
               type="email"
               placeholder="Digite seu email"
-              className="bg-white p-2 rounded-md text-black text-xl placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
+              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
             />
           </div>
 
@@ -40,7 +40,7 @@ export default function LoginPage() {
               id="password"
               type="password"
               placeholder="Digite sua senha"
-              className="bg-white p-2 rounded-md text-black text-xl placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
+              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
             />
           </div>
 

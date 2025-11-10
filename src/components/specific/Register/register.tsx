@@ -31,8 +31,8 @@ export default function Register() {
                         <input
                             id="nome"
                             type="text"
-
-                            className="bg-white p-2 rounded-md text-black text-xl placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
+                            placeholder="Digite seu nome"
+                            className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
                         />
                     </div>
 
@@ -42,7 +42,8 @@ export default function Register() {
                         <input
                             id="email"
                             type="email"
-                            className="bg-white p-2 rounded-md text-black text-xl placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
+                            placeholder="Digite seu email"  
+                            className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
                         />
                     </div>
 
@@ -52,7 +53,8 @@ export default function Register() {
                         <input
                             id="senha"
                             type="password"
-                            className="bg-white p-2 rounded-md text-black text-xl placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
+                            placeholder="Digite sua senha"
+                            className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
                         />
                     </div>
                     <div className="flex flex-col">
@@ -60,7 +62,8 @@ export default function Register() {
                         <input
                             id="confirmarSenha"
                             type="password"
-                            className="bg-white p-2 rounded-md text-black text-xl placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
+                            placeholder="Confirme sua senha"
+                            className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
                         />
                     </div>
                     
