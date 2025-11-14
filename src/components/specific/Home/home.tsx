@@ -180,10 +180,10 @@ function goToDonateItems() {
         <div className="flex gap-4 overflow-x-auto pb-3 no-scrollbar">
           {ongs.map((ong) => (
             <div
-              key={ong.id}
-              className="min-w-[220px] bg-white rounded-2xl shadow-md overflow-hidden"
-            >
-              <div className="w-full h-[140px] bg-gray-200">
+  key={ong.id}
+  className="min-w-[260px] bg-white rounded-2xl shadow-lg overflow-hidden mr-2"
+>
+  <div className="w-full h-[170px] bg-gray-200">
                 <img
                   src={ong.img}
                   alt={ong.name}
@@ -222,11 +222,11 @@ function goToDonateItems() {
   <div className="space-y-4">
     {ongs.map((ong) => (
       <div
-        key={ong.id}
-        className="flex items-center gap-4 bg-white rounded-2xl shadow-md p-4"
-      >
-        {/* IMAGEM MAIOR */}
-        <div className="w-24 h-24 rounded-xl overflow-hidden bg-gray-200">
+  key={ong.id}
+  className="flex items-center gap-5 bg-white rounded-2xl shadow-lg p-5"
+>
+  <div className="w-28 h-28 rounded-xl overflow-hidden bg-gray-200">
+
           <img
             src={ong.img}
             alt={ong.name}
