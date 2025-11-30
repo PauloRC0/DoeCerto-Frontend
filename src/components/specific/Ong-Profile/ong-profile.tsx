@@ -3,13 +3,16 @@
 import { MapPin, Award, Users, Heart } from "lucide-react";
 import { motion } from "framer-motion"
 import { useState } from "react";
-import { input, p } from "framer-motion/client";
 
 export default function OngProfilePage() {
 
   const [descricao, setDescricao] = useState("");
   const [textoSalvo, setTextoSalvo] = useState("");
   const [editando, setEditando] = useState(false);
+
+  const [missao, setMissao] = useState("");
+  const [missaoSalva, setMissaoSalva] = useState("");
+  const [editandoMissao, setEditandoMissao] = useState(false);
 
   return (
     <div className="min-h-screen bg-white text-gray-900 pb-32">
@@ -77,7 +80,26 @@ export default function OngProfilePage() {
             animate={{ opacity: 1, y: 0 }}
             className="p-5 rounded-2xl bg-white shadow-md border border-gray-100">
               <h3 className="text-base font-semibold text-[#4a1d7a]">Missão</h3>
-              <p className="mt-2 text-lg text-gray-700">Mission</p>
+              {editandoMissao ? (
+              <input value={missao}
+              onChange={(e) => setMissao(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  setMissaoSalva(missao);
+                  setEditandoMissao(false);
+                }
+              }}
+              className="mt-2 w-full border rounded-lg p2"
+              />
+            ):(
+              <p className="mt-2 text-lg text-gray-700 h-5" onClick={() => {
+                setMissao(missaoSalva);
+                setEditandoMissao(true);
+              }}
+              >
+                {missaoSalva}
+              </p>
+            )}
             </motion.div>
 
             {/* Impact */}
@@ -86,7 +108,7 @@ export default function OngProfilePage() {
             animate={{ opacity: 1, y: 0 }}
             className="p-5 rounded-2xl bg-white shadow-md border border-gray-100 text-center">
               <Users size={22} className="mx-auto text-[#4a1d7a]"/>
-              <p className="mt-2 text-2xl font-bold text-gray-900">4200</p>
+              <p className="mt-2 text-2xl font-bold text-gray-900">0</p>
               <p className="text-base text-gray-600">
                 Pessoas Impactadas
               </p>
@@ -102,7 +124,7 @@ export default function OngProfilePage() {
             <div className="mt-4 flex gap-4">
               <div className="flex-1 p-3 rounded-lg bg-gray-50 text-center border border-gray-200">
                 <Heart size={20} className="mx-auto text-pink-500"/>
-                <p className="mt-2 text-lg font-bold">1240</p>
+                <p className="mt-2 text-lg font-bold">0</p>
                 <p className="text-base text-gray-600">Doações</p>
               </div>
 
