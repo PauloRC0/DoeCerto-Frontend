@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, Award } from "lucide-react";
+import { MapPin, Award, Users } from "lucide-react";
 import { motion } from "framer-motion"
 
 export default function OngProfilePage() {
@@ -37,9 +37,37 @@ export default function OngProfilePage() {
           <motion.div 
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-5 rounded-2xl bg-white shadow-md border border-gray-100">
-            <h2 className="p-5 rounded-2xl bg-white shadow-md border border-gray-100"></h2>
+          className="p-5 rounded-2xl bg-white shadow-md border border-gray-100 mb-4">
+            <h2 className="text-base font-semibold text-[#4a1d7a]">Sobre</h2>
+            <p className="mt-3 text-lg leading-relaxed text-gray-700">Description</p>
           </motion.div>
+
+          {/* Mission + Impact */}
+          <div className="grid grid-cols-2 gap-4">
+
+            {/* Mission */}
+            <motion.div 
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-5 rounded-2xl bg-white shadow-md border border-gray-100">
+              <h3 className="text-base font-semibold text-[#4a1d7a]">Missão</h3>
+              <p className="mt-2 text-lg text-gray-700">Mission</p>
+            </motion.div>
+
+            {/* Impact */}
+            <motion.div 
+            initial={{ opacity: 0, y: 12}}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-5 rounded-2xl bg-white shadow-md border border-gray-100 text-center">
+              <Users size={22} className="mx-auto text-[#4a1d7a]"/>
+              <p className="mt-2 text-2xl font-bold text-gray-900">4200</p>
+              <p className="text-base text-gray-600">
+                Pessoas Impactadas
+              </p>
+            </motion.div>
+          </div>
+
+          {/* Stats */}
         </div>
       </div>
       
