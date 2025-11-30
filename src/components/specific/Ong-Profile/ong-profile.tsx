@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, Award, Users } from "lucide-react";
+import { MapPin, Award, Users, Heart } from "lucide-react";
 import { motion } from "framer-motion"
 
 export default function OngProfilePage() {
@@ -68,6 +68,24 @@ export default function OngProfilePage() {
           </div>
 
           {/* Stats */}
+          <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-5 rounded-2xl bg-white shadow-md border border-gray-100 mt-4">
+            <h3 className="text-base font-semibold text-[#4a1d7a] mb-4">Estatísticas</h3>
+            <div className="mt-4 flex gap-4">
+              <div className="flex-1 p-3 rounded-lg bg-gray-50 text-center border border-gray-200">
+                <Heart size={20} className="mx-auto text-pink-500"/>
+                <p className="mt-2 text-lg font-bold">1240</p>
+                <p className="text-base text-gray-600">Doações</p>
+              </div>
+
+              <div className="flex-1 p-3 rounded-lg bg-gray-50 text-center border border-gray-200">
+                <p className="mt-2 text-lg font-bold">7</p>
+                <p className="text-base text-gray-600">Anos</p>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </div>
       
