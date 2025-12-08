@@ -6,6 +6,22 @@ import { useState } from "react";
 
 export default function OngProfilePage() {
 
+  {/* Imagem Perfil de ONG */}
+  const [ongProfileImage, setOngProfileImage] = useState<File | null>(null);
+const [ongProfileImageURL, setOngProfileImageURL] = useState<string | null>(null);
+
+function handleOngProfileImageChange(event: React.ChangeEvent<HTMLInputElement>) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  setOngProfileImage(file);
+
+  const previewURL = URL.createObjectURL(file);
+  setOngProfileImageURL(previewURL);
+}
+  {/* Fim Imagem Perfil de ONG */}
+
+
   const [descricao, setDescricao] = useState("");
   const [textoSalvo, setTextoSalvo] = useState("");
   const [editando, setEditando] = useState(false);
@@ -28,7 +44,18 @@ export default function OngProfilePage() {
         className="absolute w-full h-full object-cover object-top z-0 bg-[#6b21a8]">
         </img>
 
-        <img src="#" alt="perfil" className="absolute -bottom-12 left-6 z-50 w-36 h-36 rounded-2xl overflow-hidden border-4 border-white shadow-2xl" />
+       <input 
+        type="file" 
+        accept="image/*" 
+        className="absolute -bottom-12 left-6 z-50 w-36 h-36 rounded-2xl overflow-hidden border-4 border-white"
+        onChange={handleOngProfileImageChange}
+      />
+
+      {ongProfileImageURL && (
+        <img src={ongProfileImageURL} 
+        alt="perfil" 
+        className="absolute -bottom-12 left-6 z-50 w-36 h-36 rounded-2xl overflow-hidden border-4 border-white shadow-2xl" />
+        )}
       </div>
 
       {/* Content */}
