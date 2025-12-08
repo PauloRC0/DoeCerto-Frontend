@@ -49,7 +49,7 @@ function handleImageChange(
         <input
         type="file"
         accept="image/*"
-        className="absolute w-full h-[340px] object-cover object-top z-0"
+        className="absolute w-full h-[340px] object-cover object-top z-0 bg-[#F5F5F5]"
         onChange={(e) => handleImageChange(e, setBannerImage, setBannerImageURL)}
         />
 
@@ -64,7 +64,7 @@ function handleImageChange(
        <input 
         type="file" 
         accept="image/*" 
-        className="absolute -bottom-12 left-6 z-50 w-36 h-36 rounded-2xl overflow-hidden border-4 border-white"
+        className="absolute -bottom-12 left-6 z-0 w-36 h-36 rounded-2xl overflow-hidden border-4 border-white bg-[#F5F5F5]"
         onChange={(e) => handleImageChange(e, setOngProfileImage, setOngProfileImageURL)}
       />
 
