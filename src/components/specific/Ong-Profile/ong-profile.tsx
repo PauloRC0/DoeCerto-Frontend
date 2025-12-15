@@ -3,6 +3,7 @@
 import { MapPin, Award, Users, Heart, Building } from "lucide-react";
 import { motion } from "framer-motion"
 import { useState } from "react";
+import { div } from "framer-motion/client";
 
 export default function OngProfilePage() {
 
@@ -39,6 +40,18 @@ function handleImageChange(
 
   {/* Modal */}
   const [modalAberto, setModalAberto] = useState(false);
+  const [modalInforAberto, setModalInforAberto] = useState(false);
+
+  {/* Itens Recebidos */}
+  const [valor, setValor] = useState("");
+  const [itensRecebidos, setItensRecebidos] = useState<string[]>([]);
+
+  function adicionar() {
+    if (!valor.trim()) return;
+
+    setItensRecebidos([...itensRecebidos, valor]);
+    setValor("");
+  }
 
   return (
     <div className="min-h-screen bg-white text-gray-900 pb-10">
@@ -49,7 +62,7 @@ function handleImageChange(
         <input
         type="file"
         accept="image/*"
-        className="absolute w-full h-[340px] object-cover object-top z-0 bg-[#F5F5F5]"
+        className="absolute w-full h-full object-cover object-top z-0 bg-[#F5F5F5]"
         onChange={(e) => handleImageChange(e, setBannerImage, setBannerImageURL)}
         />
 
@@ -181,10 +194,10 @@ function handleImageChange(
                 <p className="text-base text-gray-600">Doações</p>
               </button>
 
-              <div className="flex-1 p-3 rounded-lg bg-gray-50 text-center border border-gray-200">
+              <button onClick={() => setModalInforAberto(true)} className="flex-1 p-3 rounded-lg bg-gray-50 text-center border border-gray-200">
                 <Building size={20} className="mx-auto mt-4"/>
                 <p className="text-base text-gray-600">Informações da Instituição</p>
-              </div>
+              </button>
 
               <div className="flex-1 p-3 rounded-lg bg-gray-50 text-center border border-gray-200">
                 <p className="mt-2 text-lg font-bold">7</p>
@@ -359,6 +372,56 @@ function handleImageChange(
                       {/* Fim Doadores */}
                   </div>
 
+                </div>
+              )}
+
+              {modalInforAberto && (
+                <div className="fixed inset-0 flex bg-white z-[9999]">
+
+                  <div className="px-6 py-5 w-full ">
+
+                    <div className="flex flex-col">
+
+                      <button className="items-center border border-gray-200 rounded-[100] p-2 w-[25px]" onClick={() => setModalInforAberto(false)}>
+                        <p>X</p>
+                      </button>
+
+                        <h1 className="mt-6 text-xl font-bold text-[#6b21a8]">Informações da Instituição</h1>
+
+                        <motion.div 
+                         initial={{ opacity: 0, y: 12 }}
+                         animate={{ opacity: 1, y: 0 }}
+                         className="p-5 rounded-2xl bg-white shadow-md border border-gray-100 mt-4 flex flex-col">
+
+                          <label htmlFor="">Cep</label>
+                          <input className="border border-[#DDD] rounded-[10px] p-2" 
+                          type="numeric" 
+                          pattern="\d{5}-\d{3}"
+                          placeholder="00000-000"/>
+
+                          <label htmlFor="">Telefone</label>
+                          <input className="border border-[#DDD] rounded-[10px] p-2" 
+                          type="tel" 
+                          pattern="\(\d{2}\)\s\d{5}-\d{4}"
+                          placeholder="(00) 00000-0000"/>
+
+                          <label htmlFor="">Itens Aceitos</label>
+                          <input  className="border border-[#DDD] rounded-[10px] p-2" type="text" 
+                          value={valor}
+                          onChange={(e) => setValor(e.target.value)}
+                          placeholder="Digite um Item"
+                          />
+                          <button onClick={adicionar}>Salvar</button>
+
+                          {/* Lista */}
+                          <ul className="list-disc pl-5">
+                          {itensRecebidos.map((item, index) => (
+                            <li key={index}>{item}</li>
+                          ))}
+                          </ul>
+                        </motion.div>
+                    </div>
+                  </div>
                 </div>
               )}
 

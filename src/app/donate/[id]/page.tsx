@@ -72,7 +72,7 @@ export default function DonatePage({ params }: { params: Promise<{ id: string }>
             <QRCodeCanvas value={PIX_KEY} size={200} />
           </div>
 
-          <p className="text-lg mt-2 opacity-90">Chave PIX:</p>
+          <p className="text- mt-2 opacity-90">Chave PIX:</p>
           <p className="text-white font-bold text-xl">{PIX_KEY}</p>
 
           <button
