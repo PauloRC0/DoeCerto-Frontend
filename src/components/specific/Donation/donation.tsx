@@ -76,7 +76,7 @@ export default function Donation({
             value={tipoItem}
             onChange={(e) => setTipoItem(e.target.value)}
             required
-            className="p-3 rounded-xl border border-gray-300 focus:border-purple-600 focus:ring-2 focus:ring-purple-100 outline-none"
+            className="p-3 rounded-xl border border-gray-300 text-gray-700 focus:border-purple-600 focus:ring-2 focus:ring-purple-100 outline-none"
           >
             <option value="">Selecione o tipo</option>
             <option value="Alimentos">Alimentos</option>
@@ -100,7 +100,7 @@ export default function Donation({
             }}
             required
             placeholder="Ex: 5"
-            className="p-3 rounded-xl border border-gray-300 focus:border-purple-600 focus:ring-2 focus:ring-purple-100 outline-none"
+            className="p-3 rounded-xl border border-gray-300 text-gray-700 focus:border-purple-600 focus:ring-2 focus:ring-purple-100 outline-none"
           />
         </div>
 
@@ -113,7 +113,7 @@ export default function Donation({
             onChange={(e) => setEndereco(e.target.value)}
             required
             placeholder="Ex: Rua das Flores, 123"
-            className="p-3 rounded-xl border border-gray-300 focus:border-purple-600 focus:ring-2 focus:ring-purple-100 outline-none"
+            className="p-3 rounded-xl border border-gray-300 text-gray-700 focus:border-purple-600 focus:ring-2 focus:ring-purple-100 outline-none"
           />
         </div>
 
