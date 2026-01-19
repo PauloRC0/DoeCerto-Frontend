@@ -5,19 +5,21 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
+import { registerDonor } from "@/services/register.service";
 
 export default function Register() {
   const router = useRouter();
 
   const [nome, setNome] = useState("");
+  const [cpf, setCpf] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!nome || !email || !senha || !confirmarSenha) {
+    if (!nome || !cpf || !email || !senha || !confirmarSenha) {
       toast.error("Preencha todos os campos");
       return;
     }
@@ -27,17 +29,22 @@ export default function Register() {
       return;
     }
 
-    // 🔐 salva dados fictícios
-    localStorage.setItem(
-      "fakeUser",
-      JSON.stringify({ email, senha })
-    );
+    try {
+      await registerDonor({
+        name: nome,
+        email,
+        password: senha,
+        cpf,
+      });
 
-    toast.success("Cadastro realizado com sucesso!");
+      toast.success("Cadastro realizado com sucesso!");
 
-    setTimeout(() => {
-      router.push("/login");
-    }, 1500);
+      setTimeout(() => {
+        router.push("/login");
+      }, 1500);
+    } catch (err) {
+      toast.error("Erro ao realizar cadastro");
+    }
   }
 
   return (
@@ -65,6 +72,18 @@ export default function Register() {
               placeholder="Digite seu nome"
               value={nome}
               onChange={(e) => setNome(e.target.value)}
+              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <label htmlFor="cpf" className="text-base font-bold mb-1">CPF</label>
+            <input
+              id="cpf"
+              type="text"
+              placeholder="Digite seu CPF"
+              value={cpf}
+              onChange={(e) => setCpf(e.target.value)}
               className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
             />
           </div>
