@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
+import { loginDonor } from "@/services/login.service";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,27 +13,26 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    const savedUser = localStorage.getItem("fakeUser");
-
-    if (!savedUser) {
-      toast.error("Nenhum usuário cadastrado");
+    if (!email || !password) {
+      toast.error("Preencha todos os campos");
       return;
     }
 
-    const { email: savedEmail, senha: savedSenha } = JSON.parse(savedUser);
+    try {
+      await loginDonor({
+        email,
+        password,
+      });
 
-    if (email === savedEmail && password === savedSenha) {
       toast.success("Login realizado com sucesso!");
-
-      localStorage.setItem("isAuthenticated", "true");
 
       setTimeout(() => {
         router.push("/home");
       }, 1500);
-    } else {
+    } catch (err: any) {
       toast.error("Email ou senha inválidos");
     }
   }
