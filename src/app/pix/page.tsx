@@ -47,14 +47,11 @@ const ONGS = [
 
 export default function PixPage() {
   const searchParams = useSearchParams();
-
-  // Pega o id pela URL → /pix?id=2
   const id = Number(searchParams.get("id"));
-
-  // Busca a ONG correta
   const ONG = ONGS.find((o) => o.id === id) || ONGS[0];
 
   const [copied, setCopied] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
 
   const copyKey = () => {
     navigator.clipboard.writeText(ONG.pixKey);
@@ -62,11 +59,22 @@ export default function PixPage() {
     setTimeout(() => setCopied(false), 1500);
   };
 
+  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+    }
+  }
+
+  function removeFile() {
+    setFile(null);
+  }
+
   return (
     <div className="min-h-screen bg-white flex flex-col items-center px-6 py-10 text-[#3b1a66]">
 
       <h1 className="text-3xl font-bold mb-1 text-[#4A1D96]">Doação via PIX</h1>
-      <p className="text- text-gray-500 mb-8 text-center">
+      <p className="text-gray-500 mb-8 text-center">
         Faça sua contribuição de forma rápida e segura 💜
       </p>
 
@@ -118,6 +126,7 @@ export default function PixPage() {
           </p>
         )}
 
+        {/* QR CODE */}
         <div className="w-full flex justify-center mt-4 mb-3">
           <div className="bg-white p-5 rounded-xl shadow-sm">
             <Image
@@ -133,6 +142,51 @@ export default function PixPage() {
         <p className="text-center text-base text-gray-600 mt-2">
           Escaneie o QR Code para doar 💜
         </p>
+
+        {/* ======= UPLOAD COMPROVANTE PIX ======= */}
+        <div className="mt-6 bg-white p-4 rounded-xl shadow-sm border">
+          <label className="block text-sm font-semibold text-gray-700 mb-3">
+            📎 Anexar comprovante de Pix
+          </label>
+
+          <div className="flex items-center gap-3">
+
+            {/* BOTÃO ESCOLHER ARQUIVO */}
+            {!file && (
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFile}
+                className="block w-full text-sm text-gray-500
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-lg file:border-0
+                file:text-sm file:font-semibold
+                file:bg-purple-100 file:text-purple-700
+                hover:file:bg-purple-200
+                border border-gray-300 rounded-lg p-2"
+              />
+            )}
+
+            {/* CAIXA COMPROVANTE ANEXADO */}
+            {file && (
+              <div className="flex items-center justify-between bg-gray-100 border px-4 py-2 rounded-full text-sm font-medium w-full max-w-xs transition-all">
+                <span className="truncate">
+                  Comprovante anexado
+                </span>
+
+                <button
+                  onClick={removeFile}
+                  className="ml-3 text-gray-500 hover:text-red-600 font-bold text-lg"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
+          </div>
+        </div>
+        {/* ======= FIM UPLOAD ======= */}
+
       </div>
 
       <button
