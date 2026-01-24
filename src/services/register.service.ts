@@ -1,13 +1,14 @@
-// src/services/auth/register.ts
 import { api } from "@/services/api";
 
-export function registerDonor(data: {
+export interface RegisterDonorDTO {
   name: string;
   email: string;
   password: string;
   cpf: string;
-}) {
-  return api("/auth/register/donor", {
+}
+
+export function registerDonor(data: RegisterDonorDTO) {
+  return api<void>("/auth/register/donor", {
     method: "POST",
     body: JSON.stringify(data),
   });

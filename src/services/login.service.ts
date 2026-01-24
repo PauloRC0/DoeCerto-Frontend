@@ -1,12 +1,17 @@
 import { api } from "@/services/api";
 
-export function loginDonor(data: {
+interface LoginDTO {
   email: string;
   password: string;
-}) {
-  return api("/auth/login", {
+}
+
+interface LoginResponse {
+  access_token: string;
+}
+
+export async function login(data: LoginDTO): Promise<void> {
+  const response = await api<LoginResponse>("/auth/login", {
     method: "POST",
-    credentials: "include",
     body: JSON.stringify(data),
   });
 }
