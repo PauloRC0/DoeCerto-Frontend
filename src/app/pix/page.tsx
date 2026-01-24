@@ -1,8 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
-import { FaCopy, FaUniversity, FaKey, FaBuilding, FaIdCard } from "react-icons/fa";
+import { useSearchParams, useRouter } from "next/navigation";
+import {
+  FaCopy,
+  FaUniversity,
+  FaKey,
+  FaBuilding,
+  FaIdCard,
+} from "react-icons/fa";
 import { useState } from "react";
 
 // LISTA DAS ONGs
@@ -47,11 +53,14 @@ const ONGS = [
 
 export default function PixPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const id = Number(searchParams.get("id"));
   const ONG = ONGS.find((o) => o.id === id) || ONGS[0];
 
   const [copied, setCopied] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
 
   const copyKey = () => {
     navigator.clipboard.writeText(ONG.pixKey);
@@ -61,19 +70,31 @@ export default function PixPage() {
 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-    }
+    if (selectedFile) setFile(selectedFile);
   }
 
   function removeFile() {
     setFile(null);
   }
 
-  return (
-    <div className="min-h-screen bg-white flex flex-col items-center px-6 py-10 text-[#3b1a66]">
+  function handleSubmit() {
+    if (!file) return;
 
-      <h1 className="text-3xl font-bold mb-1 text-[#4A1D96]">Doação via PIX</h1>
+    setLoading(true);
+
+    // simula envio para backend
+    setTimeout(() => {
+      setLoading(false);
+      setShowPopup(true);
+    }, 1500);
+  }
+
+  return (
+    <div className="relative min-h-screen bg-white flex flex-col items-center px-6 py-10 text-[#3b1a66]">
+
+      <h1 className="text-3xl font-bold mb-1 text-[#4A1D96]">
+        Doação via PIX
+      </h1>
       <p className="text-gray-500 mb-8 text-center">
         Faça sua contribuição de forma rápida e segura 💜
       </p>
@@ -143,55 +164,98 @@ export default function PixPage() {
           Escaneie o QR Code para doar 💜
         </p>
 
-        {/* ======= UPLOAD COMPROVANTE PIX ======= */}
-        <div className="mt-6 bg-white p-4 rounded-xl shadow-sm border">
+        {/* UPLOAD */}
+        <div className="mt-6 bg-white p-4 rounded-xl shadow-sm">
           <label className="block text-sm font-semibold text-gray-700 mb-3">
             📎 Anexar comprovante de Pix
           </label>
 
-          <div className="flex items-center gap-3">
-
-            {/* BOTÃO ESCOLHER ARQUIVO */}
-            {!file && (
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFile}
-                className="block w-full text-sm text-gray-500
-                file:mr-4 file:py-2 file:px-4
-                file:rounded-lg file:border-0
-                file:text-sm file:font-semibold
-                file:bg-purple-100 file:text-purple-700
-                hover:file:bg-purple-200
-                border border-gray-300 rounded-lg p-2"
-              />
-            )}
-
-            {/* CAIXA COMPROVANTE ANEXADO */}
-            {file && (
-              <div className="flex items-center justify-between bg-gray-100 border px-4 py-2 rounded-full text-sm font-medium w-full max-w-xs transition-all">
-                <span className="truncate">
-                  Comprovante anexado
-                </span>
-
-                <button
-                  onClick={removeFile}
-                  className="ml-3 text-gray-500 hover:text-red-600 font-bold text-lg"
-                >
-                  ✕
-                </button>
-              </div>
-            )}
-
-          </div>
+          {!file ? (
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFile}
+              className="block w-full text-sm text-gray-500
+              file:mr-4 file:py-2 file:px-4
+              file:rounded-lg file:border-0
+              file:text-sm file:font-semibold
+              file:bg-purple-100 file:text-purple-700
+              hover:file:bg-purple-200
+              border border-gray-300 rounded-lg p-2"
+            />
+          ) : (
+            <div className="flex items-center justify-between bg-gray-100 border px-4 py-2 rounded-full text-sm font-medium">
+              <span className="truncate">Comprovante anexado</span>
+              <button
+                onClick={removeFile}
+                className="ml-3 text-gray-500 hover:text-red-600 font-bold text-lg"
+              >
+                ✕
+              </button>
+            </div>
+          )}
         </div>
-        {/* ======= FIM UPLOAD ======= */}
 
+        {/* BOTÃO CONFIRMAR */}
+        <button
+          onClick={handleSubmit}
+          disabled={!file || loading}
+          className={`w-full mt-6 py-3 rounded-2xl font-semibold text-white transition
+            ${!file || loading
+              ? "bg-gray-400 cursor-not-allowed opacity-60"
+              : "bg-purple-700 hover:bg-purple-800"}
+          `}
+        >
+          {loading ? "Enviando..." : "Confirmar Doação"}
+        </button>
       </div>
+
+      {/* MODAL */}
+      {showPopup && (
+  <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/20 backdrop-blur-sm">
+    <div className="bg-white rounded-3xl p-8 w-[90%] max-w-[420px] text-center shadow-2xl">
+
+      {/* ÍCONE */}
+      <div className="inline-flex items-center justify-center bg-purple-600 rounded-full p-3 mb-4 shadow-lg shadow-purple-400/40 animate-pulse">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-8 w-8 text-white"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M5 13l4 4L19 7"
+          />
+        </svg>
+      </div>
+
+      {/* TÍTULO */}
+      <h2 className="text-2xl font-bold text-purple-700 mb-3">
+        Doação enviada!
+      </h2>
+
+      <p className="text-gray-700 mb-6">
+        A ONG <span className="font-semibold">{ONG.name}</span> entrará
+        em contato com você 💜
+      </p>
+
+      <button
+        onClick={() => router.push("/home")}
+        className="bg-purple-600 text-white py-2 px-8 rounded-full font-semibold hover:bg-purple-700"
+      >
+        Ok
+      </button>
+    </div>
+  </div>
+)}
 
       <button
         onClick={() => history.back()}
-        className="mt-8 text-purple-700 text-lg font-semibold active:scale-95"
+        className="mt-8 text-purple-700 text-lg font-semibold"
       >
         Voltar
       </button>
