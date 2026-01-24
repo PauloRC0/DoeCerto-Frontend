@@ -1,9 +1,12 @@
-// services/ongs.service.ts
 import { api } from "@/services/api";
 
-export async function getOngs() {
-  const response = await api("/ongs");
+export interface Ong {
+  id: number;
+  name: string;
+}
 
-  // garante que sempre seja um array
-  return Array.isArray(response?.data) ? response.data : [];
+export async function getOngs(): Promise<Ong[]> {
+  const res = await api<Ong[]>("/ongs");
+
+  return res.data;
 }

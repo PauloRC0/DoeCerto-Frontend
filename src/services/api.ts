@@ -1,30 +1,46 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL!;
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export async function api(
+export async function api<T>(
   endpoint: string,
-  options?: RequestInit
-) {
+  options: RequestInit = {}
+): Promise<{ data: T }> {
+  const headers = new Headers(options.headers);
+
+  // 1. RESOLVENDO O ERRO 401 (Autorização)
+  // Pegamos o token do cookie 'access_token' que vimos na sua imagem
+  const token = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith("access_token="))
+    ?.split("=")[1];
+
+  if (token) {
+    // Injetamos manualmente o token no header para garantir que o 
+    // JwtAuthGuard do NestJS te reconheça
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
+  // 2. RESOLVENDO O ERRO 400 (FormData vs JSON)
+  if (options.body instanceof FormData) {
+    // IMPORTANTE: Deletamos o Content-Type para o navegador 
+    // criar o boundary do multipart/form-data corretamente
+    headers.delete("Content-Type");
+  } else if (!headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+
   const res = await fetch(`${API_URL}${endpoint}`, {
     ...options,
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(options?.headers || {}),
-    },
-  });
-
-if (!res.ok) {
-  console.log("Erro API:", {
-    url: `${API_URL}${endpoint}`,
-    status: res.status,
-    statusText: res.statusText,
+    headers,
+    credentials: "include", // Necessário para cookies em portas diferentes
   });
 
   const text = await res.text();
-  console.log("Resposta do backend:", text);
 
-  throw new Error("Erro na requisição");
-}
+  if (!res.ok) {
+    throw new Error(text || "Erro na requisição");
+  }
 
-  return res.json();
+  return {
+    data: text ? JSON.parse(text) : null,
+  };
 }

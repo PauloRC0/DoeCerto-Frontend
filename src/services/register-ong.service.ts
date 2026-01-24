@@ -1,13 +1,14 @@
-// services/register-ong.service.ts
 import { api } from "@/services/api";
 
-export function registerOng(data: {
+export interface RegisterOngDTO {
   name: string;
   email: string;
   password: string;
   cnpj: string;
-}) {
-  return api("/auth/register/ong", {
+}
+
+export function registerOng(data: RegisterOngDTO) {
+  return api<void>("/auth/register/ong", {
     method: "POST",
     body: JSON.stringify(data),
   });
