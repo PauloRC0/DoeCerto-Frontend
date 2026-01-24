@@ -1,12 +1,39 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { FiSearch, FiMenu, FiX } from "react-icons/fi";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import DonateModal from "@/components/specific/DonateModal";
+import { api } from "@/services/api";
 
+type Ong = {
+  id: number;
+  name: string;
+  img: string;
+  distance: string;
+};
+
+type OngApi = {
+  userId: number;
+  user: {
+    name: string;
+  };
+};
+
+const PLACEHOLDER_IMAGES = [
+  "https://images.unsplash.com/photo-1592194996308-7b43878e84a6?auto=format&w=600",
+  "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&w=600",
+  "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=60",
+  "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=800&q=60",
+  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=60",
+  "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=60",
+  "https://images.unsplash.com/photo-1503457574462-bd27054394c1?auto=format&w=600",
+  "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=800&q=60",
+];
+
+const TAKE = 8;
 
 export default function HomePage() {
   const router = useRouter();
@@ -18,59 +45,41 @@ export default function HomePage() {
   const [selectedOng, setSelectedOng] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const primary = "#6B21A8";
+  const [ongs, setOngs] = useState<Ong[]>([]);
+  const [page, setPage] = useState(0);
 
-  // ONGs fixas (mockadas)
-  const ongs = [
-    {
-      id: 1,
-      name: "SOS Gatinhos",
-      img: "https://images.unsplash.com/photo-1592194996308-7b43878e84a6?auto=format&w=600",
-      distance: "1.2 km",
-    },
-    {
-      id: 2,
-      name: "Patinhas Felizes",
-      img: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&w=600",
-      distance: "2.6 km",
-    },
-    {
-      id: 3,
-      name: "Casa do Bem",
-      img: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=60",
-      distance: "3.1 km",
-    },
-    {
-      id: 4,
-      name: "Ação Solidária",
-      img: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=800&q=60",
-      distance: "4.0 km",
-    },
-    {
-      id: 5,
-      name: "Mãos que Ajudam",
-      img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=60",
-      distance: "5.2 km",
-    },
-    {
-      id: 6,
-      name: "Projeto Nutrir",
-      img: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=60",
-      distance: "6.3 km",
-    },
-    {
-      id: 7,
-      name: "Crianças Primeiro",
-      img: "https://images.unsplash.com/photo-1503457574462-bd27054394c1?auto=format&w=600",
-      distance: "7.4 km",
-    },
-    {
-      id: 8,
-      name: "Anjos da Rua",
-      img: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=800&q=60",
-      distance: "8.1 km",
-    },
-  ];
+  // ---------------- ONG DO BANCO (COM PAGINAÇÃO) ----------------
+  useEffect(() => {
+    async function loadOngs() {
+      try {
+        const res = await api(`/ongs?skip=${page * TAKE}&take=${TAKE}`);
+
+        if (!res?.data || res.data.length === 0) return;
+
+        const mapped: Ong[] = (res.data as OngApi[]).map(
+          (ong: OngApi, index: number) => ({
+            id: ong.userId,
+            name: ong.user.name,
+            img:
+              PLACEHOLDER_IMAGES[
+              (page * TAKE + index) % PLACEHOLDER_IMAGES.length
+              ],
+            distance: "7.2 km",
+          })
+        );
+
+        setOngs((prev) => {
+          const ids = new Set(prev.map((o) => o.id));
+          const filtered = mapped.filter((o) => !ids.has(o.id));
+          return [...prev, ...filtered];
+        });
+      } catch (err) {
+        console.error("Erro ao buscar ONGs", err);
+      }
+    }
+
+    loadOngs();
+  }, [page]);
 
   const categories = [
     "Proteção Animal",
@@ -80,8 +89,6 @@ export default function HomePage() {
     "Meio Ambiente",
     "Idosos",
   ];
-
-  /* ----------------------- DOAÇÃO ---------------------- */
 
   function openDonateModal(ongId: number) {
     setSelectedOng(ongId);
@@ -105,17 +112,11 @@ export default function HomePage() {
     router.push(`/pix?id=${selectedOng}`);
   }
 
-  /* ----------------------- UI ---------------------- */
-
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
       {/* Header */}
       <header className="px-5 pt-6 pb-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div>
-             <Image src="/logo_roxa.svg" alt="DoeCerto" width={120} height={120} priority /> 
-          </div>
-        </div>
+        <Image src="/logo_roxa.svg" alt="DoeCerto" width={120} height={120} priority />
 
         <div className="flex items-center gap-3">
           <button className="p-2 rounded-md hover:bg-gray-100 active:scale-95 transition">
@@ -159,11 +160,10 @@ export default function HomePage() {
               <button
                 key={i}
                 onClick={() => setSelectedCategory(isSelected ? null : c)}
-                className={`whitespace-nowrap px-4 py-2 rounded-full border text-base shadow-sm active:scale-95 transition ${
-                  isSelected
+                className={`whitespace-nowrap px-4 py-2 rounded-full border text-base shadow-sm active:scale-95 transition ${isSelected
                     ? "border-purple-700 bg-purple-100 text-purple-800"
                     : "border-gray-200 bg-white text-gray-700"
-                }`}
+                  }`}
               >
                 {c}
               </button>
@@ -179,28 +179,21 @@ export default function HomePage() {
             ONGs recomendadas
           </h2>
         </div>
-
         <div className="flex gap-4 overflow-x-auto pb-3 no-scrollbar">
           {ongs.map((ong) => (
             <div
-              key={ong.id}
+              key={`carousel-${ong.id}`}
               onClick={() => router.push(`/ong-public-profile/${ong.id}`)}
-              className="min-w-[220px] bg-white rounded-2xl shadow-md overflow-hidden active:scale-95 transition cursor-pointer"
+              className="min-w-[220px] bg-white rounded-2xl shadow-md overflow-hidden cursor-pointer"
             >
               <div className="w-full h-[170px] bg-gray-200">
-                <img
-                  src={ong.img}
-                  alt={ong.name}
-                  className="w-full h-full object-cover"
-                />
+                <img src={ong.img} alt={ong.name} className="w-full h-full object-cover" />
               </div>
 
               <div className="p-3">
-                <h3 className="text-sm font-semibold text-gray-800">
-                  {ong.name}
-                </h3>
+                <h3 className="text-sm font-semibold">{ong.name}</h3>
 
-                <div className="flex items-center gap-2 text-base text-gray-500 mt-1">
+                <div className="flex items-center gap-2 text-gray-500 mt-1">
                   <FaMapMarkerAlt size={12} />
                   <span>{ong.distance}</span>
                 </div>
@@ -210,7 +203,7 @@ export default function HomePage() {
                     e.stopPropagation();
                     openDonateModal(ong.id);
                   }}
-                  className="mt-3 w-full bg-[#6B21A8] text-white py-1.5 rounded-lg text-sm font-semibold active:scale-95 transition"
+                  className="mt-3 w-full bg-[#6B21A8] text-white py-1.5 rounded-lg text-sm font-semibold"
                 >
                   Doar
                 </button>
@@ -221,59 +214,59 @@ export default function HomePage() {
       </section>
 
       {/* Lista */}
-      <section className="mt-6 px-5 mb-10">
+      <section className="mt-6 px-5 mb-10 space-y-4">
+
         <h2 className="text-xl font-semibold mb-4 text-gray-800">
           Mais próximas de você
         </h2>
 
-        <div className="space-y-4">
-          {ongs.map((ong) => (
-            <div
-              key={ong.id}
-              onClick={() => router.push(`/ong-public-profile/${ong.id}`)}
-              className="flex items-center gap-4 bg-white rounded-2xl shadow-md p-4 cursor-pointer active:scale-95 transition"
-            >
-              <div className="w-28 h-28 rounded-xl overflow-hidden bg-gray-200">
-                <img
-                  src={ong.img}
-                  alt={ong.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+        <div className="space-y-4"></div>
 
-              <div className="flex-1">
-                <h3 className="text-base font-semibold text-gray-900">
-                  {ong.name}
-                </h3>
-
-                <p className="text-sm text-gray-500 mt-1">
-                  Voluntários · {ong.distance}
-                </p>
-              </div>
-
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openDonateModal(ong.id);
-                }}
-                className="bg-[#6B21A8] text-white px-4 py-2 rounded-lg text-sm font-semibold active:scale-95"
-              >
-                Doar
-              </button>
+        {ongs.map((ong) => (
+          <div
+            key={`list-${ong.id}`}
+            onClick={() => router.push(`/ong-public-profile/${ong.id}`)}
+            className="flex items-center gap-4 bg-white rounded-2xl shadow-md p-4 cursor-pointer"
+          >
+            <div className="w-28 h-28 rounded-xl overflow-hidden">
+              <img src={ong.img} alt={ong.name} className="w-full h-full object-cover" />
             </div>
-          ))}
-        </div>
+
+            <div className="flex-1">
+              <h3 className="font-semibold">{ong.name}</h3>
+              <p className="text-sm text-gray-500">{ong.distance}</p>
+            </div>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                openDonateModal(ong.id);
+              }}
+              className="bg-[#6B21A8] text-white px-4 py-2 rounded-lg text-sm font-semibold"
+            >
+              Doar
+            </button>
+          </div>
+        ))}
       </section>
 
-      {/* Modal */}
-      {isModalOpen && (
-  <DonateModal
-    onClose={() => setIsModalOpen(false)}
-    onDonateMoney={goToDonateMoney}
-    onDonateItems={goToDonateItems}
-  />
-)}
+      {/* LOAD MAIS (paginação invisível de layout) */}
+      <div className="px-5 pb-10">
+        <button
+          onClick={() => setPage((p) => p + 1)}
+          className="w-full bg-white border rounded-xl py-3 shadow-sm text-purple-700 font-semibold"
+        >
+          Carregar mais ONGs
+        </button>
+      </div>
 
+      {isModalOpen && (
+        <DonateModal
+          onClose={() => setIsModalOpen(false)}
+          onDonateMoney={goToDonateMoney}
+          onDonateItems={goToDonateItems}
+        />
+      )}
     </div>
   );
 }
