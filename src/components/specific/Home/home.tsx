@@ -6,6 +6,7 @@ import { FiSearch, FiMenu, FiX } from "react-icons/fi";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import DonateModal from "@/components/specific/DonateModal";
+import { PaginatedResponse } from "@/types/paginated-response";
 import { api } from "@/services/api";
 
 type Ong = {
@@ -49,37 +50,39 @@ export default function HomePage() {
   const [page, setPage] = useState(0);
 
   // ---------------- ONG DO BANCO (COM PAGINAÇÃO) ----------------
-  useEffect(() => {
-    async function loadOngs() {
-      try {
-        const res = await api(`/ongs?skip=${page * TAKE}&take=${TAKE}`);
+useEffect(() => {
+  async function loadOngs() {
+    try {
+      const res = await api<PaginatedResponse<OngApi>>(
+        `/ongs?skip=${page * TAKE}&take=${TAKE}`
+      );
 
-        if (!res?.data || res.data.length === 0) return;
+      if (!res.data.data || res.data.data.length === 0) return;
 
-        const mapped: Ong[] = (res.data as OngApi[]).map(
-          (ong: OngApi, index: number) => ({
-            id: ong.userId,
-            name: ong.user.name,
-            img:
-              PLACEHOLDER_IMAGES[
+      const mapped: Ong[] = res.data.data.map(
+        (ong: OngApi, index: number) => ({
+          id: ong.userId,
+          name: ong.user.name,
+          img:
+            PLACEHOLDER_IMAGES[
               (page * TAKE + index) % PLACEHOLDER_IMAGES.length
-              ],
-            distance: "7.2 km",
-          })
-        );
+            ],
+          distance: "7.2 km",
+        })
+      );
 
-        setOngs((prev) => {
-          const ids = new Set(prev.map((o) => o.id));
-          const filtered = mapped.filter((o) => !ids.has(o.id));
-          return [...prev, ...filtered];
-        });
-      } catch (err) {
-        console.error("Erro ao buscar ONGs", err);
-      }
+      setOngs((prev) => {
+        const ids = new Set(prev.map((o) => o.id));
+        const filtered = mapped.filter((o) => !ids.has(o.id));
+        return [...prev, ...filtered];
+      });
+    } catch (err) {
+      console.error("Erro ao buscar ONGs", err);
     }
+  }
 
-    loadOngs();
-  }, [page]);
+  loadOngs();
+}, [page]);
 
   const categories = [
     "Proteção Animal",
