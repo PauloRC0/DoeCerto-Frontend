@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
-import { loginDonor } from "@/services/login.service";
+import { login } from "@/services/login.service";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -22,7 +22,7 @@ export default function LoginPage() {
     }
 
     try {
-      await loginDonor({
+      await login({
         email,
         password,
       });
