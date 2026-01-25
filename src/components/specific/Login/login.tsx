@@ -70,10 +70,10 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none"
             />
-            <div className="flex justify-end mt-1">
+            <div className="flex justify-end mt--2">
               <Link 
                 href="/forgot-password" 
-                className="text-sm font-bold text-white/80 hover:text-white transition-colors"
+                className="text-base font-bold text-white"
               >
                 Esqueceu a senha?
               </Link>
@@ -88,13 +88,16 @@ export default function LoginPage() {
             Entrar
           </button>
 
-          {/* Rodapé de Cadastro (Estilo Sellora) */}
-          <p className="text-center text-sm font-bold">
-            Ainda não possui conta?{" "}
-            <Link href="/register-choice" className="text-[#E0C4FF] font-black hover:underline decoration-2">
+          {/* Botão de cadastro */}
+          <div className="flex flex-wrap justify-center gap-x-1 text-center text-lg font-bold text-purple-100">
+            <span>Ainda não possui conta?</span>
+            <Link 
+              href="/register-choice" 
+              className="text-white font-black "
+            >
               Cadastre-se agora
             </Link>
-          </p>
+          </div>
         </form>
       </div>
     </div>
