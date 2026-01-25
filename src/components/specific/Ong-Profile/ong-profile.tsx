@@ -1,432 +1,184 @@
 "use client";
 
-import { MapPin, Award, Users, Heart, Building } from "lucide-react";
-import { motion } from "framer-motion"
-import { useState } from "react";
-import { div } from "framer-motion/client";
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { MapPin, Award, Camera, Plus, Trash2, Phone, Instagram, Save, Tag, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 
-export default function OngProfilePage() {
+export default function OngSetupProfile() {
+  const router = useRouter();
 
-  {/* Imagem Perfil de ONG */}
-  const [ongProfileImage, setOngProfileImage] = useState<File | null>(null);
-  const [ongProfileImageURL, setOngProfileImageURL] = useState<string | null>(null);
+  const [images, setImages] = useState({ banner: "", logo: "" });
+  const [items, setItems] = useState<string[]>([]);
+  const [newItem, setNewItem] = useState("");
 
-  {/* Imagem Banner de ONG */}
-  const [bannerImage, setBannerImage] = useState<File | null>(null);
-  const [bannerImageURL, setBannerImageURL] = useState<string | null>(null);
+  // Estado para múltiplas categorias
+  const [categories, setCategories] = useState<string[]>([]);
 
-function handleImageChange(
-  event: React.ChangeEvent<HTMLInputElement>, 
-  setFile: (file: File | null) => void, 
-  setURL: (url: string | null) => void
-) {
-  const file = event.target.files?.[0];
-  if (!file) return;
+  const availableCategories = [
+    "Proteção Animal", "Apoio Infantil", "Saúde", "Educação",
+    "Meio Ambiente", "Idosos", "Cultura", "Esporte", "Alimentação"
+  ];
 
-  setFile(file);
-  setURL(URL.createObjectURL(file));
-}
+  const handleImage = (e: React.ChangeEvent<HTMLInputElement>, type: 'banner' | 'logo') => {
+    const file = e.target.files?.[0];
+    if (file) setImages(prev => ({ ...prev, [type]: URL.createObjectURL(file) }));
+  };
 
-  {/* Fim Imagem */}
-
-
-  const [descricao, setDescricao] = useState("");
-  const [textoSalvo, setTextoSalvo] = useState("");
-  const [editando, setEditando] = useState(false);
-
-  const [missao, setMissao] = useState("");
-  const [missaoSalva, setMissaoSalva] = useState("");
-  const [editandoMissao, setEditandoMissao] = useState(false);
-
-  {/* Modal */}
-  const [modalAberto, setModalAberto] = useState(false);
-  const [modalInforAberto, setModalInforAberto] = useState(false);
-
-  {/* Itens Recebidos */}
-  const [valor, setValor] = useState("");
-  const [itensRecebidos, setItensRecebidos] = useState<string[]>([]);
-
-  function adicionar() {
-    if (!valor.trim()) return;
-
-    setItensRecebidos([...itensRecebidos, valor]);
-    setValor("");
-  }
+  const toggleCategory = (cat: string) => {
+    if (categories.includes(cat)) {
+      setCategories(categories.filter(c => c !== cat));
+    } else {
+      setCategories([...categories, cat]);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 pb-10">
+    <div className="min-h-screen bg-white text-gray-900 pb-32">
 
-      {/* Banner */}
-      <div className="relative w-full h-[340px]">
-
-        <input
-        type="file"
-        accept="image/*"
-        className="absolute w-full h-full object-cover object-top z-0 bg-[#F5F5F5]"
-        onChange={(e) => handleImageChange(e, setBannerImage, setBannerImageURL)}
-        />
-
-        {bannerImageURL && (
-        <img 
-        src={bannerImageURL} 
-        alt="banner" 
-        className="object-contain absolute w-full h-full object-cover object-top z-0">
-        </img>
+      {/* Banner Editável */}
+      <div className="relative w-full h-[340px] bg-gradient-to-tr from-purple-100 via-violet-50 to-pink-100 border-b border-purple-100">
+        {images.banner && (
+          <img src={images.banner} className="absolute inset-0 w-full h-full object-cover object-top" alt="Banner" />
         )}
+        <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer hover:bg-white/10 transition-all group">
+          <Camera className="text-purple-600/70 mb-2 group-hover:scale-110 transition-transform" size={32} />
+          <span className="text-[#4a1d7a] font-black text-xs uppercase tracking-widest drop-shadow-sm">
+            Adicionar Foto de Capa
+          </span>
+          <input type="file" className="hidden" onChange={(e) => handleImage(e, 'banner')} />
+        </label>
 
-       <input 
-        type="file" 
-        accept="image/*" 
-        className="absolute -bottom-12 left-6 z-0 w-36 h-36 rounded-2xl overflow-hidden border-4 border-white bg-[#F5F5F5]"
-        onChange={(e) => handleImageChange(e, setOngProfileImage, setOngProfileImageURL)}
-      />
-
-      {ongProfileImageURL && (
-        <img src={ongProfileImageURL} 
-        alt="perfil" 
-        className="absolute -bottom-12 left-6 z-50 w-36 h-36 rounded-2xl overflow-hidden border-4 border-white shadow-2xl" />
-        )}
+        <div className="absolute -bottom-12 left-6 z-50 w-36 h-36 rounded-2xl overflow-hidden border-4 border-white shadow-2xl bg-white flex items-center justify-center">
+          {images.logo ? (
+            <img src={images.logo} className="w-full h-full object-cover" alt="Logo" />
+          ) : (
+            <div className="flex flex-col items-center text-purple-200">
+              <Camera size={30} />
+              <span className="text-[10px] font-bold uppercase mt-1">Logo</span>
+            </div>
+          )}
+          <label className="absolute inset-0 flex items-center justify-center bg-purple-600/10 cursor-pointer opacity-0 hover:opacity-100 transition-opacity backdrop-blur-[2px]">
+            <Camera className="text-purple-600" size={24} />
+            <input type="file" className="hidden" onChange={(e) => handleImage(e, 'logo')} />
+          </label>
+        </div>
       </div>
 
-      {/* Content */}
-      <div className="px-6 mt-20">
-        <h1 className="text-3xl font-extrabold text-gray-900">SOS Gatinhos</h1>
-        <p className="text-gray-600 text-base mt-2 flex gap-4 items-center">
-          <span className="flex items-center gap-1">
-            <MapPin size={15}/>
-          </span>
-          <span className="flex items-center gap-1">
-            <Award size={15}/>years
-          </span>
-        </p>
+      <div className="px-6 mt-20 max-w-4xl mx-auto">
+        <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">SOS Gatinhos</h1>
+        <p className="text-[#4a1d7a] text-sm mt-1 uppercase font-black tracking-widest opacity-70">Configuração de Perfil</p>
 
-        {/* Cards */}
-        <div className="mt-6 grid grid-cols-1 gap4">
+        <div className="mt-8 grid grid-cols-1 gap-6">
 
-          {/* About */}
-          <motion.div 
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="p-5 rounded-2xl bg-white shadow-md border border-gray-100 mb-4">
-            <h2 className="text-base font-semibold text-[#4a1d7a]">Sobre</h2>
-            {editando ? (
-              <input value={descricao}
-              onChange={(e) => setDescricao(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  setTextoSalvo(descricao);
-                  setEditando(false);
-                }
-              }}
-              autoFocus
-              className="mt-3 w-full border border-gray-200 rounded-lg p2"
-              placeholder="Descreva sua ONG aqui..."
-              />
-            ):(
-              <p className={'mt-3 text-lg leading-relaxed ${textoSalvo === "" ? "text-gray-400 italic" : "text-gray-700"}'}
-              onClick={() => {
-                setDescricao(textoSalvo);
-                setEditando(true);
-              }}
-              >
-                {textoSalvo === "" ? "Descreva sua ONG aqui..." : textoSalvo}
-              </p>
-            )}
+          {/* Categorias - Nova Seção Multiselect */}
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="p-6 md:p-8 rounded-2xl bg-white shadow-md border border-gray-100">
+            <h2 className="text-lg font-bold text-[#4a1d7a] mb-4 flex items-center gap-2">
+              <Tag size={20} /> Categorias de Atuação
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {availableCategories.map((cat) => {
+                const isSelected = categories.includes(cat);
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => toggleCategory(cat)}
+                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border ${isSelected
+                        ? "bg-[#4a1d7a] text-white border-[#4a1d7a] shadow-md scale-105"
+                        : "bg-gray-50 text-gray-500 border-gray-100 hover:bg-purple-50 hover:text-purple-600"
+                      }`}
+                  >
+                    {cat}
+                  </button>
+                );
+              })}
+            </div>
           </motion.div>
 
-          {/* Mission + Impact */}
-          <div className="grid grid-cols-2 gap-4">
-
-            {/* Mission */}
-            <motion.div 
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="p-5 rounded-2xl bg-white shadow-md border border-gray-100">
-              <h3 className="text-base font-semibold text-[#4a1d7a]">Missão</h3>
-              {editandoMissao ? (
-              <input value={missao}
-              onChange={(e) => setMissao(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  setMissaoSalva(missao);
-                  setEditandoMissao(false);
-                }
-              }}
-              autoFocus
-              className="mt-2 w-full border border-gray-200 rounded-lg p2"
-              placeholder="Descreva o objetivo da ONG..."
+          {/* Sobre e Tempo de Existência */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-2">
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="h-full p-6 md:p-8 rounded-2xl bg-white shadow-md border border-gray-100">
+                <h2 className="text-lg font-bold text-[#4a1d7a] mb-3 flex items-center gap-2">Sobre a ONG</h2>
+                <textarea
+                  placeholder="Descreva a história e o trabalho da sua ONG..."
+                  className="w-full text-lg leading-relaxed text-gray-700 bg-gray-50 p-4 rounded-xl outline-none focus:ring-2 focus:ring-purple-200 border-none transition-all"
+                  rows={4}
+                />
+              </motion.div>
+            </div>
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="p-6 rounded-2xl bg-white shadow-md border border-gray-100 flex flex-col justify-center">
+              <h3 className="text-base font-bold text-[#4a1d7a] mb-2 flex items-center gap-2">
+                <Award size={18} /> Anos de Atuação
+              </h3>
+              <input
+                type="number"
+                placeholder="Ex: 5"
+                className="w-full text-2xl font-black text-gray-900 bg-gray-50 p-4 rounded-xl outline-none border-none"
               />
-            ):(
-              <p className={'mt-3 text-lg ${missaoSalva === "" ? "text-gray-400 italic" : "text-gray-700"}'} 
-              onClick={() => {
-                setMissao(missaoSalva);
-                setEditandoMissao(true);
-              }}
-              >
-                {missaoSalva === "" ? "Descreva o objetivo da ONG..." : missaoSalva}
-              </p>
-            )}
-            </motion.div>
-
-            {/* Impact */}
-            <motion.div 
-            initial={{ opacity: 0, y: 12}}
-            animate={{ opacity: 1, y: 0 }}
-            className="p-5 rounded-2xl bg-white shadow-md border border-gray-100 text-center">
-              <Users size={22} className="mx-auto text-[#4a1d7a]"/>
-              <p className="mt-2 text-2xl font-bold text-gray-900">0</p>
-              <p className="text-base text-gray-600">
-                Pessoas Impactadas
-              </p>
             </motion.div>
           </div>
 
-          {/* Stats */}
-          <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="p-5 rounded-2xl bg-white shadow-md border border-gray-100 mt-4">
-            <h3 className="text-base font-semibold text-[#4a1d7a] mb-4">Estatísticas</h3>
-            <div className="mt-4 flex gap-4">
-              <button onClick={() => setModalAberto(true)} className="flex-1 p-3 rounded-lg bg-gray-50 text-center border border-gray-200">
-                <Heart size={20} className="mx-auto text-pink-500"/>
-                <p className="mt-2 text-lg font-bold">0</p>
-                <p className="text-base text-gray-600">Doações</p>
-              </button>
-
-              <button onClick={() => setModalInforAberto(true)} className="flex-1 p-3 rounded-lg bg-gray-50 text-center border border-gray-200">
-                <Building size={20} className="mx-auto mt-4"/>
-                <p className="text-base text-gray-600">Informações da Instituição</p>
-              </button>
-
-              <div className="flex-1 p-3 rounded-lg bg-gray-50 text-center border border-gray-200">
-                <p className="mt-2 text-lg font-bold">7</p>
-                <p className="text-base text-gray-600">Anos</p>
+          {/* Contato */}
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="p-6 md:p-8 rounded-2xl bg-white shadow-md border border-gray-100">
+            <h2 className="text-lg font-bold text-[#4a1d7a] mb-6 italic border-l-4 border-purple-200 pl-4">Canais de Contato e Local</h2>
+            <div className="space-y-4">
+              <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-xl focus-within:ring-2 focus-within:ring-purple-100 transition-all">
+                <Phone size={22} className="text-purple-400" />
+                <input placeholder="WhatsApp / Telefone" className="bg-transparent outline-none w-full text-lg font-medium" />
+              </div>
+              <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-xl focus-within:ring-2 focus-within:ring-purple-100 transition-all">
+                <Instagram size={22} className="text-pink-400" />
+                <input placeholder="@instagram_ong" className="bg-transparent outline-none w-full text-lg font-medium" />
+              </div>
+              <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-xl focus-within:ring-2 focus-within:ring-purple-100 transition-all">
+                <MapPin size={22} className="text-blue-400" />
+                <input placeholder="Cidade - UF (Ex: Recife - PE)" className="bg-transparent outline-none w-full text-lg font-medium" />
               </div>
             </div>
           </motion.div>
+
+          {/* Itens Aceitos */}
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="p-6 md:p-8 rounded-2xl bg-white shadow-md border border-gray-100">
+            <h2 className="text-lg font-bold text-[#4a1d7a] mb-3">Itens que aceitamos</h2>
+            <div className="flex gap-3 mb-4">
+              <input
+                value={newItem}
+                onChange={(e) => setNewItem(e.target.value)}
+                placeholder="Ex: Ração, Cobertores..."
+                className="flex-1 bg-gray-50 p-4 rounded-xl outline-none text-lg border-none focus:ring-2 focus:ring-purple-100"
+              />
+              <button
+                onClick={() => { if (newItem) setItems([...items, newItem]); setNewItem(""); }}
+                className="bg-[#4a1d7a] text-white px-6 rounded-xl hover:bg-[#3b1762] shadow-lg transition-all active:scale-95 flex items-center justify-center"
+              >
+                <Plus size={24} />
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              {items.map((item, i) => (
+                <span key={i} className="flex items-center gap-2 bg-purple-50 text-[#4a1d7a] px-4 py-2 rounded-full text-sm font-black border border-purple-100 shadow-sm transition-all">
+                  {item}
+                  <Trash2 size={16} className="cursor-pointer text-red-400 hover:text-red-600 transition-colors" onClick={() => setItems(items.filter((_, idx) => idx !== i))} />
+                </span>
+              ))}
+            </div>
+          </motion.div>
+
         </div>
-
-         {modalAberto && (
-                <div className="fixed inset-0 flex bg-white z-[9999]">
-
-                  <div className="px-6 py-5 w-full ">
-
-                    <div className="relative flex flex-row justify-center">
-                      <button className="absolute left-0 flex border border-gray-200 rounded-[100] p-2" onClick={() => setModalAberto(false)}>
-                        <p>X</p>
-                      </button>
-                    <h1 className="flex text-3xl font-extrabold text-[#6b21a8]">Histórico</h1>
-                    </div>
-
-                    <div className="flex flex-row w-full mb-4 mt-6">
-                      <motion.div 
-                      initial={{ opacity: 0, y: 12}}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="p-5 rounded-l-2xl bg-white shadow-md border border-gray-100 text-center w-[50%]">
-                        <h1 className="text-3xl font-extrabold text-gray-900">21</h1>
-                        <p>Doadores</p>
-                      </motion.div>
-
-                      <motion.div 
-                      initial={{ opacity: 0, y: 12}}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="p-5 rounded-r-2xl bg-white shadow-md border border-gray-100 text-center w-[50%]">
-                        <h1 className="text-3xl font-extrabold text-gray-900">1.000</h1>
-                      <p>Doações</p>
-                      </motion.div>
-                    </div>
-
-                    {/* Doadores */}
-                    <div className="flex flex-col w-full">
-                        <div className="relative flex flex-row rounded-10 bg-[#FDFDFD] w-full border border-gray-200">
-                          <img src="#" 
-                          alt="" 
-                          className="mt-2 mb-2 ml-5 border border-gray-100 w-10 h-10 rounded-[50%]" />
-                          <div className="flex flex-col ml-4">
-                            <h2 className="font-extrabold mt-1 text-[#6b21a8]">Dinheiro</h2>
-                            <p>Antônio Luiz</p>
-                          </div>
-                          <div className="absolute flex flex-col right-5 font-extrabold text-gray-900 items-center">
-                            <span className="h-2">.</span>
-                            <span className="h-2">.</span>
-                            <span className="h-2">.</span>
-                          </div>
-
-                        </div>
-                      </div>
-                      {/* Fim Doadores */}
-                      {/* Doadores */}
-                    <div className="flex flex-col w-full">
-                        <div className="relative flex flex-row rounded-10 bg-[#FDFDFD] w-full border border-gray-200">
-                          <img src="#" 
-                          alt="" 
-                          className="mt-2 mb-2 ml-5 border border-gray-100 w-10 h-10 rounded-[50%]" />
-                          <div className="flex flex-col ml-4">
-                            <h2 className="font-extrabold text-[#6b21a8] mt-1">Ração</h2>
-                            <p>Antônio Luiz</p>
-                          </div>
-                          <div className="absolute flex flex-col right-5 font-extrabold text-gray-900 items-center">
-                            <span className="h-2">.</span>
-                            <span className="h-2">.</span>
-                            <span className="h-2">.</span>
-                          </div>
-
-                        </div>
-                      </div>
-                      {/* Fim Doadores */}
-                      {/* Doadores */}
-                    <div className="flex flex-col w-full">
-                        <div className="relative flex flex-row rounded-10 bg-[#FDFDFD] w-full border border-gray-200">
-                          <img src="#" 
-                          alt="" 
-                          className="mt-2 mb-2 ml-5 border border-gray-100 w-10 h-10 rounded-[50%]" />
-                          <div className="flex flex-col ml-4">
-                            <h2 className="font-extrabold text-[#6b21a8] mt-1">Dinheiro</h2>
-                            <p>Antônio Luiz</p>
-                          </div>
-                          <div className="absolute flex flex-col right-5 font-extrabold text-gray-900 items-center">
-                            <span className="h-2">.</span>
-                            <span className="h-2">.</span>
-                            <span className="h-2">.</span>
-                          </div>
-
-                        </div>
-                      </div>
-                      {/* Fim Doadores */}
-                      {/* Doadores */}
-                    <div className="flex flex-col w-full">
-                        <div className="relative flex flex-row rounded-10 bg-[#FDFDFD] w-full border border-gray-200">
-                          <img src="#" 
-                          alt="" 
-                          className="mt-2 mb-2 ml-5 border border-gray-100 w-10 h-10 rounded-[50%]" />
-                          <div className="flex flex-col ml-4">
-                            <h2 className="font-extrabold text-[#6b21a8] mt-1">Coleira</h2>
-                            <p>Antônio Luiz</p>
-                          </div>
-                          <div className="absolute flex flex-col right-5 font-extrabold text-gray-900 items-center">
-                            <span className="h-2">.</span>
-                            <span className="h-2">.</span>
-                            <span className="h-2">.</span>
-                          </div>
-
-                        </div>
-                      </div>
-                      {/* Fim Doadores */}
-                      {/* Doadores */}
-                    <div className="flex flex-col w-full">
-                        <div className="relative flex flex-row rounded-10 bg-[#FDFDFD] w-full border border-gray-200">
-                          <img src="#" 
-                          alt="" 
-                          className="mt-2 mb-2 ml-5 border border-gray-100 w-10 h-10 rounded-[50%]" />
-                          <div className="flex flex-col ml-4">
-                            <h2 className="font-extrabold text-[#6b21a8] mt-1">Dinheiro</h2>
-                            <p>Antônio Luiz</p>
-                          </div>
-                          <div className="absolute flex flex-col right-5 font-extrabold text-gray-900 items-center">
-                            <span className="h-2">.</span>
-                            <span className="h-2">.</span>
-                            <span className="h-2">.</span>
-                          </div>
-
-                        </div>
-                      </div>
-                      {/* Fim Doadores */}
-                      {/* Doadores */}
-                    <div className="flex flex-col w-full">
-                        <div className="relative flex flex-row rounded-10 bg-[#FDFDFD] w-full border border-gray-200">
-                          <img src="#" 
-                          alt="" 
-                          className="mt-2 mb-2 ml-5 border border-gray-100 w-10 h-10 rounded-[50%]" />
-                          <div className="flex flex-col ml-4">
-                            <h2 className="font-extrabold text-[#6b21a8] mt-1">Dinheiro</h2>
-                            <p>Antônio Luiz</p>
-                          </div>
-                          <div className="absolute flex flex-col right-5 font-extrabold text-gray-900 items-center">
-                            <span className="h-2">.</span>
-                            <span className="h-2">.</span>
-                            <span className="h-2">.</span>
-                          </div>
-
-                        </div>
-                      </div>
-                      {/* Fim Doadores */}
-                      {/* Doadores */}
-                    <div className="flex flex-col w-full">
-                        <div className="relative flex flex-row rounded-10 bg-[#FDFDFD] w-full border border-gray-200">
-                          <img src="#" 
-                          alt="" 
-                          className="mt-2 mb-2 ml-5 border border-gray-100 w-10 h-10 rounded-[50%]" />
-                          <div className="flex flex-col ml-4">
-                            <h2 className="font-extrabold text-[#6b21a8] mt-1">Dinheiro</h2>
-                            <p>Antônio Luiz</p>
-                          </div>
-                          <div className="absolute flex flex-col right-5 font-extrabold text-gray-900 items-center">
-                            <span className="h-2">.</span>
-                            <span className="h-2">.</span>
-                            <span className="h-2">.</span>
-                          </div>
-
-                        </div>
-                      </div>
-                      {/* Fim Doadores */}
-                  </div>
-
-                </div>
-              )}
-
-              {modalInforAberto && (
-                <div className="fixed inset-0 flex bg-white z-[9999]">
-
-                  <div className="px-6 py-5 w-full ">
-
-                    <div className="flex flex-col">
-
-                      <button className="items-center border border-gray-200 rounded-[100] p-2 w-[25px]" onClick={() => setModalInforAberto(false)}>
-                        <p>X</p>
-                      </button>
-
-                        <h1 className="mt-6 text-xl font-bold text-[#6b21a8]">Informações da Instituição</h1>
-
-                        <motion.div 
-                         initial={{ opacity: 0, y: 12 }}
-                         animate={{ opacity: 1, y: 0 }}
-                         className="p-5 rounded-2xl bg-white shadow-md border border-gray-100 mt-4 flex flex-col">
-
-                          <label htmlFor="">Cep</label>
-                          <input className="border border-[#DDD] rounded-[10px] p-2" 
-                          type="numeric" 
-                          pattern="\d{5}-\d{3}"
-                          placeholder="00000-000"/>
-
-                          <label htmlFor="">Telefone</label>
-                          <input className="border border-[#DDD] rounded-[10px] p-2" 
-                          type="tel" 
-                          pattern="\(\d{2}\)\s\d{5}-\d{4}"
-                          placeholder="(00) 00000-0000"/>
-
-                          <label htmlFor="">Itens Aceitos</label>
-                          <input  className="border border-[#DDD] rounded-[10px] p-2" type="text" 
-                          value={valor}
-                          onChange={(e) => setValor(e.target.value)}
-                          placeholder="Digite um Item"
-                          />
-                          <button onClick={adicionar}>Salvar</button>
-
-                          {/* Lista */}
-                          <ul className="list-disc pl-5">
-                          {itensRecebidos.map((item, index) => (
-                            <li key={index}>{item}</li>
-                          ))}
-                          </ul>
-                        </motion.div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
       </div>
-      
+
+      {/* Botão de Salvar */}
+      <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="fixed bottom-4 left-0 right-0 px-6 z-[100]">
+        <div className="max-w-4xl mx-auto">
+          <button
+            className="w-full py-5 rounded-2xl text-xl font-black text-white bg-gradient-to-r from-pink-500 to-purple-600 shadow-xl flex items-center justify-center gap-3 active:scale-[0.98] transition-all hover:brightness-110"
+          >
+           Finalizar meu Perfil
+          </button>
+        </div>
+      </motion.div>
+
     </div>
   );
 }
