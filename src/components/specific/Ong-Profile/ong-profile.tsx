@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { MapPin, Award, Plus, Trash2, Phone, Instagram, Tag, Wallet, Landmark } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-// Importação dos componentes que você enviou
+// Importação dos componentes da sua UI
 import { FormSection } from "@/components/ui/form-section";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { InputGroup } from "@/components/ui/input-group";
@@ -43,10 +43,24 @@ export default function OngSetupProfile() {
     );
   };
 
+  // Função para adicionar itens (Suporta vírgula e limpa espaços)
+  const handleAddItems = () => {
+    if (!newItem.trim()) return;
+
+    // Divide por vírgula, remove espaços em branco e filtra entradas vazias
+    const itemsToAdd = newItem
+      .split(',')
+      .map(item => item.trim())
+      .filter(item => item !== "");
+
+    setItems(prev => [...prev, ...itemsToAdd]);
+    setNewItem("");
+  };
+
   return (
     <div className="min-h-screen bg-white text-gray-900 pb-32">
 
-      {/* SEÇÃO DE IMAGENS (Utilizando o ImageUploader) */}
+      {/* SEÇÃO DE IMAGENS */}
       <div className="relative">
         <ImageUploader 
           variant="banner" 
@@ -70,7 +84,7 @@ export default function OngSetupProfile() {
 
         <div className="mt-8 grid grid-cols-1 gap-6">
 
-          {/* 1. SOBRE E ANOS (Utilizando FormSection) */}
+          {/* 1. SOBRE E ANOS */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <FormSection title="Sobre a ONG" className="md:col-span-2">
               <textarea
@@ -89,7 +103,7 @@ export default function OngSetupProfile() {
             </FormSection>
           </div>
 
-          {/* 2. CONTATO (Utilizando FormSection + InputGroup) */}
+          {/* 2. CONTATO */}
           <FormSection title="Canais de Contato e Local" italicTitle>
             <div className="space-y-4">
               <InputGroup icon={Phone} placeholder="WhatsApp / Telefone" />
@@ -106,6 +120,7 @@ export default function OngSetupProfile() {
                 return (
                   <button
                     key={cat}
+                    type="button"
                     onClick={() => toggleCategory(cat)}
                     className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border ${
                       isSelected
@@ -120,7 +135,7 @@ export default function OngSetupProfile() {
             </div>
           </FormSection>
 
-          {/* 4. DOAÇÕES PIX (Utilizando CustomSelect) */}
+          {/* 4. DOAÇÕES PIX */}
           <FormSection 
             title="Receber Doações via PIX" 
             icon={Wallet} 
@@ -169,22 +184,30 @@ export default function OngSetupProfile() {
             </div>
           </FormSection>
 
-          {/* 5. ITENS FÍSICOS */}
+          {/* 5. ITENS FÍSICOS (COM LÓGICA DE VÍRGULA) */}
           <FormSection title="Itens que aceitamos (Físicos)">
             <div className="flex gap-2 mb-4">
               <input
                 value={newItem}
                 onChange={(e) => setNewItem(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddItems();
+                  }
+                }}
                 placeholder="Ex: Ração, Cobertores..."
                 className="flex-1 bg-gray-50 p-4 rounded-xl outline-none text-lg border-none focus:ring-2 focus:ring-purple-100 min-w-0"
               />
               <button
-                onClick={() => { if (newItem) setItems([...items, newItem]); setNewItem(""); }}
+                type="button"
+                onClick={handleAddItems}
                 className="bg-[#4a1d7a] text-white px-6 rounded-xl hover:bg-[#3b1762] shadow-lg transition-all active:scale-95 flex items-center justify-center shrink-0"
               >
                 <Plus size={24} />
               </button>
             </div>
+            
             <div className="flex flex-wrap gap-3">
               {items.map((item, i) => (
                 <span key={i} className="flex items-center gap-2 bg-purple-50 text-[#4a1d7a] px-4 py-2 rounded-full text-sm font-black border border-purple-100 shadow-sm transition-all group">
@@ -206,6 +229,7 @@ export default function OngSetupProfile() {
       <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="fixed bottom-4 left-0 right-0 px-6 z-[100]">
         <div className="max-w-4xl mx-auto">
           <button
+            type="button"
             onClick={() => console.log("Salvar:", { images, items, categories, pixKey })}
             className="w-full py-5 rounded-2xl text-xl font-black text-white bg-gradient-to-r from-pink-500 to-purple-600 shadow-xl flex items-center justify-center gap-3 active:scale-[0.98] transition-all hover:brightness-110"
           >
