@@ -60,6 +60,10 @@ export default function OngPublicProfile({ ong }: Props) {
         </button>
       </div>
 
+      <div className="w-full flex justify-end">
+        <button className="bg-[#4a1d7a] mt-2 mr-2 px-4 py-2 rounded-2xl text-lg font-bold text-white">Editar</button>
+      </div>
+
       {/* Content */}
       <div className="px-6 mt-20">
         <h1 className="text-3xl font-extrabold text-gray-900">{ong.name}</h1>
