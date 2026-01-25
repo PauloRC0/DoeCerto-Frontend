@@ -22,13 +22,8 @@ export default function LoginPage() {
     }
 
     try {
-      await login({
-        email,
-        password,
-      });
-
+      await login({ email, password });
       toast.success("Login realizado com sucesso!");
-
       setTimeout(() => {
         router.push("/home");
       }, 1500);
@@ -39,7 +34,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-purple-700 text-white px-6">
-
       <Toaster position="top-center" />
 
       <div className="w-full max-w-xs flex flex-col items-center">
@@ -51,8 +45,9 @@ export default function LoginPage() {
           Faça seu login!
         </h1>
 
-        <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
-          <div className="flex flex-col">
+        <form onSubmit={handleSubmit} className="w-full flex flex-col">
+          {/* Campo Email */}
+          <div className="flex flex-col mb-4">
             <label htmlFor="email" className="text-lg font-bold mb-0">Email</label>
             <input
               id="email"
@@ -60,11 +55,12 @@ export default function LoginPage() {
               placeholder="Digite seu email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
+              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none"
             />
           </div>
 
-          <div className="flex flex-col mt-1">
+          {/* Campo Senha */}
+          <div className="flex flex-col mb-6">
             <label htmlFor="password" className="text-lg font-bold mb-0">Senha</label>
             <input
               id="password"
@@ -72,23 +68,33 @@ export default function LoginPage() {
               placeholder="Digite sua senha"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
+              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none"
             />
+            <div className="flex justify-end mt-1">
+              <Link 
+                href="/forgot-password" 
+                className="text-sm font-bold text-white/80 hover:text-white transition-colors"
+              >
+                Esqueceu a senha?
+              </Link>
+            </div>
           </div>
 
-          <p className="text-base font-bold text-right -mt-4 mb-4">
-            Ainda não possui conta?{" "}
-            <Link href="/register-choice" className="text-[#E0C4FF] font-bold">
-              Cadastre-se
-            </Link>
-          </p>
-
+          {/* Botão Principal */}
           <button
             type="submit"
-            className="w-3/4 mx-auto mt-4 text-center text-2xl bg-white text-[#6B39A7] font-bold py-2 rounded-md active:scale-95 transition-transform"
+            className="w-full text-center text-2xl bg-white text-[#6B39A7] font-bold py-2 rounded-md active:scale-95 transition-transform mb-8"
           >
             Entrar
           </button>
+
+          {/* Rodapé de Cadastro (Estilo Sellora) */}
+          <p className="text-center text-sm font-bold">
+            Ainda não possui conta?{" "}
+            <Link href="/register-choice" className="text-[#E0C4FF] font-black hover:underline decoration-2">
+              Cadastre-se agora
+            </Link>
+          </p>
         </form>
       </div>
     </div>
