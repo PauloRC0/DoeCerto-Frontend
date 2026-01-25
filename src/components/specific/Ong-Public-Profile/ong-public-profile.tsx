@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Users, Heart, Award } from "lucide-react";
+import { MapPin, Users, Heart, Award, Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { Ong } from "@/data/ongs";
 import DonateModal from "@/components/specific/DonateModal";
@@ -13,8 +13,6 @@ type Props = {
 
 export default function OngPublicProfile({ ong }: Props) {
   const router = useRouter();
-
-  // Agora no lugar correto
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
@@ -30,6 +28,40 @@ export default function OngPublicProfile({ ong }: Props) {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
         />
+
+        {/* Back button */}
+        <button
+          onClick={() => router.back()}
+          className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-md text-gray-900 z-50"
+        >
+          ←
+        </button>
+
+        {/* BOTÃO EDITAR PERFIL */}
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="
+    absolute top-4 right-4 z-50
+
+    md:top-6 md:right-8
+    lg:top-8 lg:right-12
+
+    flex items-center gap-2 
+    bg-white border-2 border-[#4a1d7a] 
+
+    px-4 py-2 text-sm
+    md:px-6 md:py-3 md:text-base
+
+    rounded-xl 
+    font-bold text-[#4a1d7a]
+    shadow-sm active:bg-purple-50 
+    transition-colors
+  "
+        >
+          <Pencil size={18} className="md:size-20" />
+          Editar Perfil
+        </motion.button>
 
         {/* Avatar */}
         <motion.div
@@ -50,18 +82,6 @@ export default function OngPublicProfile({ ong }: Props) {
             className="w-full h-full object-cover"
           />
         </motion.div>
-
-        {/* Back button */}
-        <button
-          onClick={() => router.back()}
-          className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-md text-gray-900 z-50"
-        >
-          ←
-        </button>
-      </div>
-
-      <div className="w-full flex justify-end">
-        <button className="bg-[#4a1d7a] mt-2 mr-2 px-4 py-2 rounded-2xl text-lg font-bold text-white">Editar</button>
       </div>
 
       {/* Content */}
@@ -80,7 +100,6 @@ export default function OngPublicProfile({ ong }: Props) {
         {/* Cards */}
         <div className="mt-6 grid grid-cols-1 gap-4">
 
-          {/* About */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -92,10 +111,7 @@ export default function OngPublicProfile({ ong }: Props) {
             </p>
           </motion.div>
 
-          {/* Mission + Impact */}
           <div className="grid grid-cols-2 gap-4">
-
-            {/* Mission */}
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -107,7 +123,6 @@ export default function OngPublicProfile({ ong }: Props) {
               </p>
             </motion.div>
 
-            {/* Impact */}
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -121,7 +136,6 @@ export default function OngPublicProfile({ ong }: Props) {
             </motion.div>
           </div>
 
-          {/* Stats */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -130,7 +144,6 @@ export default function OngPublicProfile({ ong }: Props) {
             <h3 className="text-base font-semibold text-[#4a1d7a]">Estatísticas</h3>
 
             <div className="mt-4 flex gap-4">
-
               <div className="flex-1 p-3 rounded-lg bg-gray-50 text-center border border-gray-200">
                 <Heart size={20} className="mx-auto text-pink-500" />
                 <p className="mt-2 text-lg font-bold">{ong.donations}</p>
@@ -156,21 +169,21 @@ export default function OngPublicProfile({ ong }: Props) {
           onClick={() => setIsModalOpen(true)}
           className="w-full py-4 rounded-2xl text-lg font-bold text-white bg-gradient-to-r from-pink-500 to-purple-600 shadow-xl"
         >
-          Doar para esta ONG 
+          Doar para esta ONG
         </button>
       </motion.div>
 
-      {/* Modal SEM ALTERAR NADA NOS CARDS */}
       {isModalOpen && (
         <DonateModal
           onClose={() => setIsModalOpen(false)}
           onDonateMoney={() => router.push(`/pix?id=${ong.id}`)}
           onDonateItems={() =>
-            router.push(`/donation?ongId=${ong.id}&ong=${encodeURIComponent(ong.name)}`)
+            router.push(
+              `/donation?ongId=${ong.id}&ong=${encodeURIComponent(ong.name)}`
+            )
           }
         />
       )}
-
     </div>
   );
 }
