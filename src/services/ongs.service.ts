@@ -5,8 +5,9 @@ export interface Ong {
   name: string;
 }
 
-export async function getOngs(): Promise<Ong[]> {
-  const res = await api<Ong[]>("/ongs");
+export async function getVerifiedOngs(): Promise<Ong[]> {
+  const res = await api<any[]>("/catalog");
 
-  return res.data;
+  const all = res.data.flatMap(s => s.data);
+  return Array.from(new Map(all.map((o: any) => [o.userId, { id: o.userId, name: o.name }])).values());
 }
