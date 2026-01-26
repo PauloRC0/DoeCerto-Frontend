@@ -33,7 +33,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-purple-700 text-white px-6">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#6B39A7] text-white px-6">
       <Toaster position="top-center" />
 
       <div className="w-full max-w-xs flex flex-col items-center">

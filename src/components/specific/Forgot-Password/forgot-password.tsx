@@ -50,7 +50,7 @@ export default function ForgotPasswordComponent() {
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center bg-purple-700 text-white px-6 pt-20 pb-10">
+    <div className="relative min-h-screen flex flex-col items-center justify-center bg-[#6B39A7] text-white px-6 pt-20 pb-10">
       <Toaster position="top-center" />
 
       {/* Botão Voltar - Ajustado para não sumir em telas pequenas */}

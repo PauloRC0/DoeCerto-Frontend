@@ -67,11 +67,11 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-purple-700 text-white px-6">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#6B39A7] text-white px-6">
       <Toaster position="top-center" />
 
       <div className="w-full max-w-xs flex flex-col items-center">
-        <div className="mb-4">
+        <div className="mb-2">
           <Image src="/logo.svg" alt="DoeCerto" width={120} height={120} priority />
         </div>
 

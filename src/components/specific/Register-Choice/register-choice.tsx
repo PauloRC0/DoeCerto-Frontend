@@ -17,7 +17,7 @@ export default function RegisterChoicePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-purple-700 text-white font-sans px-6">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#6B39A7] text-white font-sans px-6">
       <div className="w-full max-w-xs flex flex-col items-center text-center">
         <h1 className="text-4xl font-bold mb-3">Novo por aqui?</h1>
         <p className="text-base mb-8">
