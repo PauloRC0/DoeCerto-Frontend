@@ -50,34 +50,35 @@ export default function HomePage() {
   const [page, setPage] = useState(0);
 
   // ---------------- ONG DO BANCO (COM PAGINAÇÃO) ----------------
+
 useEffect(() => {
   async function loadOngs() {
     try {
-      const res = await api<PaginatedResponse<OngApi>>(
-        `/ongs?skip=${page * TAKE}&take=${TAKE}`
-      );
-
-      if (!res.data.data || res.data.data.length === 0) return;
-
-      const mapped: Ong[] = res.data.data.map(
-        (ong: OngApi, index: number) => ({
-          id: ong.userId,
-          name: ong.user.name,
-          img:
-            PLACEHOLDER_IMAGES[
-              (page * TAKE + index) % PLACEHOLDER_IMAGES.length
-            ],
-          distance: "7.2 km",
-        })
-      );
+      const res = await api<any>(`/catalog?offset=${page * TAKE}&limit=${TAKE}`);
+      
+      const sections = res.data;
+      if (!sections || sections.length === 0) return;
+      const allOngsFromApi = sections.flatMap((section: any) => section.data);
+      const mapped: Ong[] = allOngsFromApi.map((ong: any, index: number) => ({
+        id: ong.userId,
+        name: ong.name,
+        img: PLACEHOLDER_IMAGES[(page * TAKE + index) % PLACEHOLDER_IMAGES.length],
+        distance: "7.2 km",
+      }));
 
       setOngs((prev) => {
-        const ids = new Set(prev.map((o) => o.id));
-        const filtered = mapped.filter((o) => !ids.has(o.id));
-        return [...prev, ...filtered];
+       
+        const combined = [...prev, ...mapped];
+        const uniqueMap = new Map();
+        
+        combined.forEach(ong => {
+          uniqueMap.set(ong.id, ong);
+        });
+
+        return Array.from(uniqueMap.values());
       });
     } catch (err) {
-      console.error("Erro ao buscar ONGs", err);
+      console.error("Erro ao buscar ONGs:", err);
     }
   }
 
