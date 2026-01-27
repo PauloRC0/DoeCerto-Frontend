@@ -8,6 +8,7 @@ import {
   FaKey,
   FaBuilding,
   FaIdCard,
+  FaDollarSign
 } from "react-icons/fa";
 import { useState } from "react";
 
@@ -61,6 +62,8 @@ export default function PixPage() {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
+  const [valor, setValor] = useState("5");
+  const valoresRapidos = ["5", "10", "20", "50", "100"];
 
   const copyKey = () => {
     navigator.clipboard.writeText(ONG.pixKey);
@@ -146,6 +149,56 @@ export default function PixPage() {
             ✔ Chave copiada!
           </p>
         )}
+
+        <div className="mt-6 bg-white p-4 rounded-xl shadow-sm">
+          <div className="flex flex-row">
+            <FaDollarSign className="text-purple-700 text-xl"/>
+          <p className="block text-sm font-semibold text-gray-700 mb-3">
+              Quanto você deseja doar?
+          </p>
+          </div>
+          
+          <div className="w-full flex items-center justify-center flex-col border border-gray-300 rounded-lg p-2">
+
+          <h1 className="text-xl font-bold text-center mb-4">
+            Selecionar valor da doação
+          </h1>
+            
+            {/* INPUT VALOR */}
+            <div className="flex items-center border rounded-lg px- py-2 mb-4">
+              <span className="text-gray-500 mr-2">  R$</span>
+              <input type="number"
+              value={valor}
+              onChange={(e) => setValor(e.target.value)}
+              className="w-full outline-none text-lg" 
+              />
+            </div>
+
+            {/* Botões rápidos */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
+              {valoresRapidos.map((v) => (
+              <button
+                key={v}
+                onClick={() => setValor(v)}
+                className={`border rounded-lg py-2 text-center font-medium ${
+                valor === v ? "bg-purple-600 text-white" : "bg-gray-50"
+                }`}
+              >
+                R$ {v}
+              </button>
+              ))}
+
+              {/*Valor personalizado*/}
+              <button className="border rounded-lg py-2 text-gray-500 col-span-2">
+                Quantia personalizada
+              </button>
+            </div>
+
+            {/*Botão continuar*/}
+            <button className="w-full bg-green-600 text-white py-3 rounded-lg font-bold text-lg hover:bg-green-700 transition">Continuar</button>
+
+          </div>
+        </div>
 
         {/* QR CODE */}
         <div className="w-full flex justify-center mt-4 mb-3">
