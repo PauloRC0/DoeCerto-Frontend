@@ -6,23 +6,21 @@ export async function api<T>(
 ): Promise<{ data: T }> {
   const headers = new Headers(options.headers);
 
-  // 1. RESOLVENDO O ERRO 401 (Autorização)
-  // Pegamos o token do cookie 'access_token' que vimos na sua imagem
+  // 1. ADICIONANDO O TOKEN
+ 
   const token = document.cookie
     .split("; ")
     .find((row) => row.startsWith("access_token="))
     ?.split("=")[1];
 
   if (token) {
-    // Injetamos manualmente o token no header para garantir que o 
-    // JwtAuthGuard do NestJS te reconheça
+   
     headers.set("Authorization", `Bearer ${token}`);
   }
 
   // 2. RESOLVENDO O ERRO 400 (FormData vs JSON)
   if (options.body instanceof FormData) {
-    // IMPORTANTE: Deletamos o Content-Type para o navegador 
-    // criar o boundary do multipart/form-data corretamente
+   
     headers.delete("Content-Type");
   } else if (!headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
@@ -31,7 +29,7 @@ export async function api<T>(
   const res = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers,
-    credentials: "include", // Necessário para cookies em portas diferentes
+    credentials: "include", 
   });
 
   const text = await res.text();
