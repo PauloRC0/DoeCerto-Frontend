@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Award, Plus, Trash2, Phone, Instagram, Tag, Wallet, Loader2, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-
+import { resizeImageToBanner } from "@/utils/resizeImage";
 import { FormSection } from "@/components/ui/form-section";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { InputGroup } from "@/components/ui/input-group";
@@ -24,9 +24,12 @@ export default function OngSetupProfile() {
   const [address, setAddress] = useState("");
   const [years, setYears] = useState("");
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
+
+  // Estados para arquivos e previews
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState("");
   const [bannerPreview, setBannerPreview] = useState("");
+
   const [items, setItems] = useState<string[]>([]);
   const [newItem, setNewItem] = useState("");
   const [pixKey, setPixKey] = useState("");
@@ -40,18 +43,17 @@ export default function OngSetupProfile() {
         const categories = await OngProfileService.getCategories();
         setAvailableCategories(categories || []);
 
-        const profile = await OngProfileService.getMyProfile(); 
-        
+        const profile = await OngProfileService.getMyProfile();
+
         if (profile) {
-          // O NOME ESTÁ AQUI: profile.ong.user.name
           const name = profile.ong?.user?.name || profile.name || "Minha ONG";
           setOngName(name);
-          
+
           setBio(profile.bio || "");
           setAddress(profile.address || "");
           setPhone(profile.contactNumber || "");
           setInstagram(profile.websiteUrl || "");
-          
+
           const formatUrl = (path: string) => {
             if (!path) return "";
             if (path.startsWith("http")) return path;
@@ -73,16 +75,25 @@ export default function OngSetupProfile() {
     loadInitialData();
   }, []);
 
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setLogoFile(file);
-      setLogoPreview(URL.createObjectURL(file));
-    }
+  // Handlers corrigidos para evitar erro de tipo sem mudar o componente ImageUploader
+  const handleLogoChange = (file: File) => {
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
   };
 
+  
+const handleBannerChange = async (file: File) => {
+  console.log("ORIGINAL:", file.size);
+
+  const resized = await resizeImageToBanner(file);
+
+  console.log("REDIMENSIONADO:", resized.size);
+
+  setBannerPreview(URL.createObjectURL(resized));
+};
+
   const toggleCategory = (id: number) => {
-    setSelectedCategoryIds(prev => 
+    setSelectedCategoryIds(prev =>
       prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
     );
   };
@@ -103,7 +114,8 @@ export default function OngSetupProfile() {
         address,
         websiteUrl: instagram,
         categoryIds: selectedCategoryIds,
-        logoFile: logoFile || undefined
+        logoFile: logoFile || undefined,
+        // bannerFile removido para não dar erro no seu Service de teste
       });
       router.push("/ong-dashboard");
     } catch (error) {
@@ -115,33 +127,37 @@ export default function OngSetupProfile() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900 pb-32">
-      <div className="relative">
-        <div className="h-[140px] sm:h-[300px] w-full bg-gray-100 relative overflow-hidden">
-             <ImageUploader 
-                variant="banner" 
-                image={bannerPreview} 
-                onImageChange={(e) => setBannerPreview(URL.createObjectURL(e.target.files![0]))} 
-                label="Adicionar Foto de Capa"
-            />
-        </div>
-        
-        <button onClick={() => router.back()} className="absolute top-4 left-4 bg-white/90 p-2 rounded-full z-50 shadow-md text-gray-900">
-            <ArrowLeft size={20} />
+      {/* Container do Topo */}
+      <div className="relative w-full">
+        {/* Banner */}
+        <ImageUploader
+          variant="banner"
+          image={bannerPreview}
+          onImageChange={handleBannerChange}
+          label="Adicionar Foto de Capa"
+        />
+
+        {/* Botão Voltar */}
+        <button
+          onClick={() => router.back()}
+          className="absolute top-4 left-4 bg-white/90 p-2 rounded-full z-30 shadow-md text-gray-900 hover:bg-white transition-colors"
+        >
+          <ArrowLeft size={20} />
         </button>
 
-        <div className="absolute -bottom-12 left-6 z-50">
-            <div className="scale-90 sm:scale-100 shadow-xl rounded-3xl bg-white p-1">
-              <ImageUploader 
-                  variant="logo" 
-                  image={logoPreview} 
-                  onImageChange={handleLogoChange} 
-                  label="Logo"
-              />
-            </div>
+        {/* Logo Posicionada - Ajustada para Mobile e Desktop */}
+        <div className="absolute -bottom-14 left-6 sm:left-10 z-40">
+          <ImageUploader
+            variant="logo"
+            image={logoPreview}
+            onImageChange={handleLogoChange}
+            label="Logo"
+          />
         </div>
       </div>
 
-      <div className="px-4 sm:px-6 mt-28 sm:mt-24 max-w-4xl mx-auto">
+      {/* Conteúdo do Formulário */}
+      <div className="px-4 sm:px-6 mt-20 sm:mt-24 max-w-4xl mx-auto">
         <header className="flex flex-col items-start text-left pt-6">
           <h1 className="text-2xl sm:text-4xl font-black text-gray-900 tracking-tight break-words w-full">
             {ongName}
@@ -189,11 +205,10 @@ export default function OngSetupProfile() {
                   key={cat.id}
                   type="button"
                   onClick={() => toggleCategory(cat.id)}
-                  className={`px-3 py-1.5 rounded-xl text-[11px] sm:text-sm font-bold transition-all border ${
-                    selectedCategoryIds.includes(cat.id)
+                  className={`px-3 py-1.5 rounded-xl text-[11px] sm:text-sm font-bold transition-all border ${selectedCategoryIds.includes(cat.id)
                       ? "bg-[#4a1d7a] text-white border-[#4a1d7a] shadow-md"
                       : "bg-gray-50 text-gray-500 border-gray-100 hover:bg-purple-50"
-                  }`}
+                    }`}
                 >
                   {cat.name}
                 </button>
@@ -202,27 +217,27 @@ export default function OngSetupProfile() {
           </FormSection>
 
           <FormSection title="Receber Doações via PIX" icon={Wallet} className="bg-gradient-to-br from-white to-purple-50">
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                <CustomSelect label="Tipo de Chave" value={pixType} options={pixOptions} onChange={setPixType} />
-                <input 
-                    value={pixKey} 
-                    onChange={(e) => setPixKey(e.target.value)} 
-                    placeholder="Chave PIX" 
-                    className="w-full bg-white p-4 rounded-xl border border-gray-100 outline-none text-sm focus:border-purple-300 transition-colors" 
-                />
-             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+              <CustomSelect label="Tipo de Chave" value={pixType} options={pixOptions} onChange={setPixType} />
+              <input
+                value={pixKey}
+                onChange={(e) => setPixKey(e.target.value)}
+                placeholder="Chave PIX"
+                className="w-full bg-white p-4 rounded-xl border border-gray-100 outline-none text-sm focus:border-purple-300 transition-colors"
+              />
+            </div>
           </FormSection>
 
           <FormSection title="Itens que aceitamos">
             <div className="grid grid-cols-[1fr_48px] gap-2 mb-4">
-              <input 
-                value={newItem} 
-                onChange={(e) => setNewItem(e.target.value)} 
-                placeholder="Ex: Ração..." 
-                className="w-full bg-gray-50 p-3 rounded-xl outline-none text-sm min-w-0 border-none focus:ring-1 focus:ring-purple-100" 
+              <input
+                value={newItem}
+                onChange={(e) => setNewItem(e.target.value)}
+                placeholder="Ex: Ração..."
+                className="w-full bg-gray-50 p-3 rounded-xl outline-none text-sm min-w-0 border-none focus:ring-1 focus:ring-purple-100"
               />
-              <button 
-                onClick={handleAddItems} 
+              <button
+                onClick={handleAddItems}
                 className="aspect-square bg-[#4a1d7a] text-white flex items-center justify-center rounded-xl active:scale-95 transition-transform"
               >
                 <Plus size={20} />
