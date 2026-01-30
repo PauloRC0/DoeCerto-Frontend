@@ -16,7 +16,8 @@ import {
   Package,
   CheckCircle2,
   Clock,
-  FileText
+  FileText,
+  ArrowLeft
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { Ong } from "@/data/ongs";
@@ -71,7 +72,13 @@ export default function OngDashboard({ ong }: Props) {
           className="absolute inset-0 w-full h-full object-cover object-top"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }}
         />
-        <button onClick={() => router.back()} className="absolute top-4 left-4 bg-white/90 p-2 rounded-full z-50 shadow-md text-gray-900 font-bold"> ← </button>
+        {/* Botão Voltar */}
+        <button
+          onClick={() => router.back()}
+          className="absolute top-4 left-4 bg-white/90 p-2 rounded-full z-30 shadow-md text-gray-900 hover:bg-white transition-colors"
+        >
+          <ArrowLeft size={20} />
+        </button>
 
         {/* Ajuste: removido o 'hidden' para o texto aparecer sempre */}
         <motion.button 

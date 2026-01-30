@@ -10,7 +10,7 @@ import {
   Phone,
   Home,
   Star,
-  ChevronLeft
+  ArrowLeft
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { Ong } from "@/data/ongs";
@@ -34,11 +34,12 @@ export default function OngPublicProfile({ ong }: Props) {
           className="absolute inset-0 w-full h-full object-cover object-top"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }}
         />
-        <button 
-          onClick={() => router.back()} 
-          className="absolute top-3 left-3 bg-white/90 p-2 rounded-full z-50 shadow-sm text-gray-900 active:scale-90"
-        > 
-          <ChevronLeft size={20} /> 
+        {/* Botão Voltar */}
+        <button
+          onClick={() => router.back()}
+          className="absolute top-4 left-4 bg-white/90 p-2 rounded-full z-30 shadow-md text-gray-900 hover:bg-white transition-colors"
+        >
+          <ArrowLeft size={20} />
         </button>
         
         {/* Logo: Redimensionada para não ocupar metade da tela (w-24 -> w-36) */}
