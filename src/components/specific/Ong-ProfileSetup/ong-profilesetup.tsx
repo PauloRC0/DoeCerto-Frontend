@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Award, Plus, Trash2, Phone, Instagram, Tag, Wallet, Loader2, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { resizeImageToBanner } from "@/utils/resizeImage";
 import { FormSection } from "@/components/ui/form-section";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { InputGroup } from "@/components/ui/input-group";
@@ -75,22 +74,15 @@ export default function OngSetupProfile() {
     loadInitialData();
   }, []);
 
-  // Handlers corrigidos para evitar erro de tipo sem mudar o componente ImageUploader
   const handleLogoChange = (file: File) => {
     setLogoFile(file);
     setLogoPreview(URL.createObjectURL(file));
   };
 
-  
-const handleBannerChange = async (file: File) => {
-  console.log("ORIGINAL:", file.size);
-
-  const resized = await resizeImageToBanner(file);
-
-  console.log("REDIMENSIONADO:", resized.size);
-
-  setBannerPreview(URL.createObjectURL(resized));
-};
+  // HANDLER SIMPLIFICADO: Removemos o resize para garantir que a imagem tenha "sobra" para arrastar
+  const handleBannerChange = (file: File) => {
+    setBannerPreview(URL.createObjectURL(file));
+  };
 
   const toggleCategory = (id: number) => {
     setSelectedCategoryIds(prev =>
@@ -115,7 +107,6 @@ const handleBannerChange = async (file: File) => {
         websiteUrl: instagram,
         categoryIds: selectedCategoryIds,
         logoFile: logoFile || undefined,
-        // bannerFile removido para não dar erro no seu Service de teste
       });
       router.push("/ong-dashboard");
     } catch (error) {
@@ -127,9 +118,7 @@ const handleBannerChange = async (file: File) => {
 
   return (
     <div className="min-h-screen bg-white text-gray-900 pb-32">
-      {/* Container do Topo */}
       <div className="relative w-full">
-        {/* Banner */}
         <ImageUploader
           variant="banner"
           image={bannerPreview}
@@ -137,7 +126,6 @@ const handleBannerChange = async (file: File) => {
           label="Adicionar Foto de Capa"
         />
 
-        {/* Botão Voltar */}
         <button
           onClick={() => router.back()}
           className="absolute top-4 left-4 bg-white/90 p-2 rounded-full z-30 shadow-md text-gray-900 hover:bg-white transition-colors"
@@ -145,7 +133,6 @@ const handleBannerChange = async (file: File) => {
           <ArrowLeft size={20} />
         </button>
 
-        {/* Logo Posicionada - Ajustada para Mobile e Desktop */}
         <div className="absolute -bottom-14 left-6 sm:left-10 z-40">
           <ImageUploader
             variant="logo"
@@ -156,7 +143,6 @@ const handleBannerChange = async (file: File) => {
         </div>
       </div>
 
-      {/* Conteúdo do Formulário */}
       <div className="px-4 sm:px-6 mt-20 sm:mt-24 max-w-4xl mx-auto">
         <header className="flex flex-col items-start text-left pt-6">
           <h1 className="text-2xl sm:text-4xl font-black text-gray-900 tracking-tight break-words w-full">
