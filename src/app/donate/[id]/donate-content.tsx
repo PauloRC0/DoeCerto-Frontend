@@ -18,7 +18,7 @@ export default function DonateContent({ params }: { params: Promise<{ id: string
   const [option, setOption] = useState<"items" | "money" | null>(null);
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/ongs/${id}`)
+    fetch(`__NEXT_PUBLIC_API_URL__/ongs/${id}`)
       .then((res) => res.json())
       .then((data) => {
         console.log("ONG RECEBIDA:", data);

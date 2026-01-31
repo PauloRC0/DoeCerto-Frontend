@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = "__NEXT_PUBLIC_API_URL__";
 
 export async function api<T>(
   endpoint: string,
