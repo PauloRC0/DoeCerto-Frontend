@@ -1,4 +1,4 @@
-const API_URL = "__NEXT_PUBLIC_API_URL__";
+const API_URL = "/api";
 
 export async function api<T>(
   endpoint: string,
