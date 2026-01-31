@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
+import { login } from "@/services/login.service";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,34 +13,27 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    const savedUser = localStorage.getItem("fakeUser");
-
-    if (!savedUser) {
-      toast.error("Nenhum usuário cadastrado");
+    if (!email || !password) {
+      toast.error("Preencha todos os campos");
       return;
     }
 
-    const { email: savedEmail, senha: savedSenha } = JSON.parse(savedUser);
-
-    if (email === savedEmail && password === savedSenha) {
+    try {
+      await login({ email, password });
       toast.success("Login realizado com sucesso!");
-
-      localStorage.setItem("isAuthenticated", "true");
-
       setTimeout(() => {
         router.push("/home");
       }, 1500);
-    } else {
+    } catch (err: any) {
       toast.error("Email ou senha inválidos");
     }
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-purple-700 text-white px-6">
-
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#6B39A7] text-white px-6">
       <Toaster position="top-center" />
 
       <div className="w-full max-w-xs flex flex-col items-center">
@@ -51,8 +45,9 @@ export default function LoginPage() {
           Faça seu login!
         </h1>
 
-        <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
-          <div className="flex flex-col">
+        <form onSubmit={handleSubmit} className="w-full flex flex-col">
+          {/* Campo Email */}
+          <div className="flex flex-col mb-4">
             <label htmlFor="email" className="text-lg font-bold mb-0">Email</label>
             <input
               id="email"
@@ -60,11 +55,12 @@ export default function LoginPage() {
               placeholder="Digite seu email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
+              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none"
             />
           </div>
 
-          <div className="flex flex-col mt-1">
+          {/* Campo Senha */}
+          <div className="flex flex-col mb-6">
             <label htmlFor="password" className="text-lg font-bold mb-0">Senha</label>
             <input
               id="password"
@@ -72,23 +68,36 @@ export default function LoginPage() {
               placeholder="Digite sua senha"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
+              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none"
             />
+            <div className="flex justify-end mt--2">
+              <Link 
+                href="/forgot-password" 
+                className="text-base font-bold text-white"
+              >
+                Esqueceu a senha?
+              </Link>
+            </div>
           </div>
 
-          <p className="text-base font-bold text-right -mt-4 mb-4">
-            Ainda não possui conta?{" "}
-            <Link href="/register-choice" className="text-[#E0C4FF] font-bold">
-              Cadastre-se
-            </Link>
-          </p>
-
+          {/* Botão Principal */}
           <button
             type="submit"
-            className="w-3/4 mx-auto mt-4 text-center text-2xl bg-white text-[#6B39A7] font-bold py-2 rounded-md active:scale-95 transition-transform"
+            className="w-full text-center text-2xl bg-white text-[#6B39A7] font-bold py-2 rounded-md active:scale-95 transition-transform mb-8"
           >
             Entrar
           </button>
+
+          {/* Botão de cadastro */}
+          <div className="flex flex-wrap justify-center gap-x-1 text-center text-lg font-bold text-purple-100">
+            <span>Ainda não possui conta?</span>
+            <Link 
+              href="/register-choice" 
+              className="text-white font-black "
+            >
+              Cadastre-se agora
+            </Link>
+          </div>
         </form>
       </div>
     </div>
