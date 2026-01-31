@@ -14,14 +14,22 @@ FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-COPY --from=builder /app/.next ./.next
+ENV NODE_ENV=production
 
-COPY --from=builder /app/node_modules ./node_modules
+# Adiciona usuário não-root para segurança
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/package*.json ./
-
+# Copia apenas standalone output (otimizado com production deps)
+COPY --from=builder /app/out/standalone ./
+COPY --from=builder /app/out/static ./out/static
 COPY --from=builder /app/public ./public
+
+USER nextjs
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+CMD ["node", "server.js"]
