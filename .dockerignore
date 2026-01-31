@@ -1,0 +1,23 @@
+android
+node_modules
+.git
+.gitignore
+.github
+.vscode
+.env*
+.next
+dist
+out
+README.md
+Dockerfile
+.dockerignore
+eslint.config.mjs
+.eslintignore
+*.md
+npm-debug.log
+yarn-error.log
+.DS_Store
+# Arquivos de teste
+jest.config.js
+jest.setup.js
+src/__tests__
