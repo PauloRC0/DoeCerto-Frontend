@@ -1,6 +1,10 @@
 import OngPublicProfile from "@/components/specific/Ong-Public-Profile/ong-public-profile";
 import { ongs } from "@/data/ongs";
 
+export function generateStaticParams() {
+  return ongs.map((ong) => ({ id: String(ong.id) }));
+}
+
 export default async function OngPublicPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
