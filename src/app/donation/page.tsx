@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import React, { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Donation from "../../components/specific/Donation/donation";
@@ -32,9 +34,9 @@ export default function DonationPage() {
 
       await createDonation(payload);
       setShowPopup(true);
-    } catch (error: any) {
+    } catch (error: unknown) {
      
-      console.error("Erro na Doação:", error.message);
+      console.error("Erro na Doação:", error instanceof Error ? error.message : String(error));
       alert("Não foi possível enviar a doação. Verifique sua conexão ou login.");
     }
   };

@@ -27,7 +27,7 @@ export default function LoginPage() {
       setTimeout(() => {
         router.push("/home");
       }, 1500);
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error("Email ou senha inválidos");
     }
   }
