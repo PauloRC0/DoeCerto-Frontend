@@ -1,14 +1,11 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Donation from "../../components/specific/Donation/donation";
 import { createDonation } from "@/services/donation.service";
 
-
-export default function DonationPage() {
+function DonationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -72,5 +69,17 @@ export default function DonationPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function DonationPage() {
+  return (
+    <Suspense fallback={
+      <div className="relative min-h-screen bg-gray-50 py-8 px-4 flex items-center justify-center">
+        <p>Carregando...</p>
+      </div>
+    }>
+      <DonationContent />
+    </Suspense>
   );
 }
