@@ -15,7 +15,7 @@ export default function OngSetupProfile() {
 
   const [loading, setLoading] = useState(false);
   const [ongName, setOngName] = useState("Minha ONG");
-  const [availableCategories, setAvailableCategories] = useState<any[]>([]);
+  const [availableCategories, setAvailableCategories] = useState<Array<{ id: number; name: string }>>([]);
 
   const [bio, setBio] = useState("");
   const [phone, setPhone] = useState("");
@@ -64,7 +64,7 @@ export default function OngSetupProfile() {
           if (profile.bannerUrl) setBannerPreview(formatUrl(profile.bannerUrl));
 
           if (profile.categories) {
-            setSelectedCategoryIds(profile.categories.map((c: any) => c.id));
+            setSelectedCategoryIds(profile.categories.map((c: { id: number }) => c.id));
           }
         }
       } catch (error) {

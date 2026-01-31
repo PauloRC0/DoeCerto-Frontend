@@ -1,6 +1,11 @@
 import { api } from "./api";
 
-export async function createDonation(payload: any) {
+export async function createDonation(payload: {
+  ongId: number;
+  donationType: string;
+  materialDescription: string;
+  materialQuantity: number;
+}) {
   const formData = new FormData();
   
   // O @Type(() => Number) no DTO vai converter essas strings

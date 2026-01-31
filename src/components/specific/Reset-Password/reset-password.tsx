@@ -59,8 +59,8 @@ export default function ResetPasswordPage() {
         router.push("/login");
       }, 3000);
 
-    } catch (err: any) {
-      toast.error(err.message || "Erro ao conectar com o servidor.");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Erro ao conectar com o servidor.");
     } finally {
       setLoading(false);
     }
