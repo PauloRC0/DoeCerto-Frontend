@@ -6,8 +6,8 @@ export interface Ong {
 }
 
 export async function getVerifiedOngs(): Promise<Ong[]> {
-  const res = await api<unknown[]>("/catalog");
+  const res = await api<Array<{ data: unknown[] }>>("/catalog");
 
-  const all = res.data.flatMap((s: { data: unknown[] }) => s.data);
-  return Array.from(new Map(all.map((o: Record<string, unknown>) => [o.userId, { id: o.userId as number, name: o.name as string }])).values());
+  const all = res.data.flatMap((s) => s.data) as Array<Record<string, unknown>>;
+  return Array.from(new Map(all.map((o) => [o.userId, { id: o.userId as number, name: o.name as string }])).values());
 }

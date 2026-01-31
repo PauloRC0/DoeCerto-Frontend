@@ -6,6 +6,10 @@ jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
 }))
 
+jest.mock('@/services/register.service', () => ({
+  registerDonor: jest.fn(),
+}))
+
 jest.mock('react-hot-toast', () => ({
   __esModule: true,
   default: {
@@ -52,11 +56,13 @@ describe('Register Component', () => {
     render(<Register />)
     
     const nomeInput = screen.getByPlaceholderText(/nome/i) as HTMLInputElement
+    const cpfInput = screen.getByPlaceholderText(/cpf/i) as HTMLInputElement
     const emailInput = screen.getByPlaceholderText(/email/i) as HTMLInputElement
     const senhaInputs = screen.getAllByPlaceholderText(/senha/i)
     const submitButton = screen.getByRole('button', { name: /criar conta|cadastrar/i })
     
     fireEvent.change(nomeInput, { target: { value: 'John Doe' } })
+    fireEvent.change(cpfInput, { target: { value: '12345678900' } })
     fireEvent.change(emailInput, { target: { value: 'john@test.com' } })
     fireEvent.change(senhaInputs[0], { target: { value: 'password123' } })
     fireEvent.change(senhaInputs[1], { target: { value: 'password456' } })
@@ -69,15 +75,22 @@ describe('Register Component', () => {
 
   it('deve registrar usuário com sucesso com dados válidos', async () => {
     const { default: toast } = await import('react-hot-toast')
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const registerService = require('@/services/register.service')
+    
+    // Mock successful registration
+    registerService.registerDonor.mockResolvedValueOnce(undefined)
     
     render(<Register />)
     
     const nomeInput = screen.getByPlaceholderText(/nome/i) as HTMLInputElement
+    const cpfInput = screen.getByPlaceholderText(/cpf/i) as HTMLInputElement
     const emailInput = screen.getByPlaceholderText(/email/i) as HTMLInputElement
     const senhaInputs = screen.getAllByPlaceholderText(/senha/i)
     const submitButton = screen.getByRole('button', { name: /criar conta|cadastrar/i })
     
     fireEvent.change(nomeInput, { target: { value: 'John Doe' } })
+    fireEvent.change(cpfInput, { target: { value: '12345678900' } })
     fireEvent.change(emailInput, { target: { value: 'john@test.com' } })
     fireEvent.change(senhaInputs[0], { target: { value: 'password123' } })
     fireEvent.change(senhaInputs[1], { target: { value: 'password123' } })

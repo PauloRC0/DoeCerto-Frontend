@@ -7,6 +7,11 @@ jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
 }))
 
+// Mock login service
+jest.mock('@/services/login.service', () => ({
+  login: jest.fn(),
+}))
+
 // Mock react-hot-toast
 jest.mock('react-hot-toast', () => ({
   __esModule: true,
@@ -39,6 +44,11 @@ describe('LoginPage Component', () => {
 
   it('deve exibir erro quando não houver usuário cadastrado', async () => {
     const { default: toast } = await import('react-hot-toast')
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const loginService = require('@/services/login.service')
+    
+    // Mock login to reject
+    loginService.login.mockRejectedValueOnce(new Error('User not found'))
     
     render(<LoginPage />)
     
@@ -51,17 +61,17 @@ describe('LoginPage Component', () => {
     fireEvent.click(submitButton)
     
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('Nenhum usuário cadastrado')
+      expect(toast.error).toHaveBeenCalledWith('Email ou senha inválidos')
     })
   })
 
   it('deve fazer login com sucesso com credenciais corretas', async () => {
     const { default: toast } = await import('react-hot-toast')
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const loginService = require('@/services/login.service')
     
-    localStorage.setItem('fakeUser', JSON.stringify({
-      email: 'test@test.com',
-      senha: 'password123'
-    }))
+    // Mock successful login
+    loginService.login.mockResolvedValueOnce(undefined)
     
     render(<LoginPage />)
     

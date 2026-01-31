@@ -30,9 +30,9 @@ async getMyProfile() {
    * Rota: GET /categories
    */
   async getCategories() {
-    const { data } = await api<unknown>('/categories?take=100');
+    const { data } = await api<{ data?: unknown } | unknown[]>('/categories?take=100');
     // Ajusta o retorno baseado na estrutura comum do NestJS/Prisma (paginada ou array simples)
-    return data?.data || data || [];
+    return (data && typeof data === 'object' && 'data' in data ? data.data : data) || [];
   },
 
   /**

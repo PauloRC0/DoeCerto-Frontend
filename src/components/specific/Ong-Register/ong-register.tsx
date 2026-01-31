@@ -42,7 +42,7 @@ export default function OngRegisterPage() {
       setTimeout(() => {
         router.push("/login");
       }, 1200);
-    } catch (err) {
+    } catch {
       toast.error("Erro ao cadastrar ONG");
     }
   }
