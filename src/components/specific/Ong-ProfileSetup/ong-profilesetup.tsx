@@ -72,9 +72,22 @@ export default function OngSetupProfile() {
 
           const formatUrl = (path: string) => {
             if (!path) return "";
-            if (path.startsWith("http")) return path;
+            
+            // Se já for URL completa, valida se é do mesmo domínio
+            if (path.startsWith("http")) {
+              try {
+                const url = new URL(path);
+                if (url.origin === window.location.origin) {
+                  return path;
+                }
+                return ""; // Rejeita URLs externas
+              } catch {
+                return "";
+              }
+            }
+            
             const cleanPath = path.replace(/\\/g, "/");
-            return `http://localhost:3000/${cleanPath}`;
+            return `${window.location.origin}/${cleanPath}`;
           };
 
           if (profile.avatarUrl) setLogoPreview(formatUrl(profile.avatarUrl));
