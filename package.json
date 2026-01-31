@@ -27,7 +27,7 @@
   "devDependencies": {
     "@capacitor/cli": "^8.0.1",
     "@testing-library/jest-dom": "^6.1.5",
-    "@testing-library/react": "^15.0.0",
+    "@testing-library/react": "^16.3.2",
     "@tailwindcss/postcss": "^4",
     "@types/jest": "^29.5.11",
     "@types/node": "^20",
