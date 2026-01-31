@@ -17,6 +17,7 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
+    "types": ["jest", "@testing-library/jest-dom"],
     "plugins": [
       {
         "name": "next"
@@ -36,7 +37,9 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts",
     "out/types/**/*.ts",
-    "out/dev/types/**/*.ts"
+    "out/dev/types/**/*.ts",
+    "src/__tests__/**/*.ts",
+    "src/__tests__/**/*.tsx"
   ],
   "exclude": [
     "node_modules"
