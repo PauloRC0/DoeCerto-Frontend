@@ -3,11 +3,19 @@
 import { use, useEffect, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 
+interface OngData {
+  pixKey?: string;
+  user?: {
+    name?: string;
+  };
+  [key: string]: unknown;
+}
+
 export default function DonatePage({ params }: { params: Promise<{ id: string }> }) {
   // ⛔ params é uma PROMISE → Next.js exige usar use()
   const { id } = use(params);
 
-  const [ong, setOng] = useState<unknown>(null);
+  const [ong, setOng] = useState<OngData | null>(null);
   const [option, setOption] = useState<"items" | "money" | null>(null);
 
   useEffect(() => {

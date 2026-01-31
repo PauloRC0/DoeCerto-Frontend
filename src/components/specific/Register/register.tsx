@@ -42,7 +42,7 @@ export default function Register() {
       setTimeout(() => {
         router.push("/login");
       }, 1500);
-    } catch (err) {
+    } catch {
       toast.error("Erro ao realizar cadastro");
     }
   }

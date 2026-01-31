@@ -10,6 +10,23 @@ import { InputGroup } from "@/components/ui/input-group";
 import { ImageUploader } from "@/components/ui/image-uploader";
 import { OngProfileService } from "@/services/ongs-profile.service";
 
+interface OngProfile {
+  ong?: {
+    user?: {
+      name?: string;
+    };
+  };
+  name?: string;
+  bio?: string;
+  address?: string;
+  contactNumber?: string;
+  websiteUrl?: string;
+  avatarUrl?: string;
+  bannerUrl?: string;
+  categories?: Array<{ id: number }>;
+  [key: string]: unknown;
+}
+
 export default function OngSetupProfile() {
   const router = useRouter();
 
@@ -39,10 +56,10 @@ export default function OngSetupProfile() {
   useEffect(() => {
     async function loadInitialData() {
       try {
-        const categories = await OngProfileService.getCategories();
+        const categories = await OngProfileService.getCategories() as Array<{ id: number; name: string }>;
         setAvailableCategories(categories || []);
 
-        const profile = await OngProfileService.getMyProfile();
+        const profile = await OngProfileService.getMyProfile() as OngProfile;
 
         if (profile) {
           const name = profile.ong?.user?.name || profile.name || "Minha ONG";
@@ -109,7 +126,7 @@ export default function OngSetupProfile() {
         logoFile: logoFile || undefined,
       });
       router.push("/ong-dashboard");
-    } catch (error) {
+    } catch {
       alert("Houve um erro ao salvar seu perfil.");
     } finally {
       setLoading(false);

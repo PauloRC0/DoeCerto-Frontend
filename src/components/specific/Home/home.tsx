@@ -54,14 +54,14 @@ export default function HomePage() {
 useEffect(() => {
   async function loadOngs() {
     try {
-      const res = await api<unknown>(`/catalog?offset=${page * TAKE}&limit=${TAKE}`);
+      const res = await api<Array<{ data: unknown[] }>>(`/catalog?offset=${page * TAKE}&limit=${TAKE}`);
       
       const sections = res.data;
       if (!sections || sections.length === 0) return;
-      const allOngsFromApi = sections.flatMap((section: { data: unknown[] }) => section.data);
-      const mapped: Ong[] = allOngsFromApi.map((ong: Record<string, unknown>, index: number) => ({
-        id: ong.userId,
-        name: ong.name,
+      const allOngsFromApi = sections.flatMap((section: { data: unknown[] }) => section.data) as Array<Record<string, unknown>>;
+      const mapped: Ong[] = allOngsFromApi.map((ong, index: number) => ({
+        id: ong.userId as number,
+        name: ong.name as string,
         img: PLACEHOLDER_IMAGES[(page * TAKE + index) % PLACEHOLDER_IMAGES.length],
         distance: "7.2 km",
       }));
