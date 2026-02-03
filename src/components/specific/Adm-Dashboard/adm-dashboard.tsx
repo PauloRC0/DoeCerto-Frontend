@@ -16,7 +16,7 @@ export default function AdminDashboard() {
   return (
     <div className="flex h-screen bg-white font-sans text-gray-800 overflow-hidden">
       
-      {/* Sidebar Lateral - Sem arredondamento no topo e sem efeitos de luz */}
+      {/* Sidebar Lateral */}
       <aside className="w-72 bg-[#6B39A7] text-white flex flex-col shrink-0 shadow-2xl z-20">
         <div className="p-8 flex-1">
           <div className="mb-12 mt-4 text-center">
@@ -55,7 +55,7 @@ export default function AdminDashboard() {
             />
           </div>
           <div className="w-64 flex items-center justify-end gap-5">
-            {/* Efeito do Sino Mantido conforme solicitado */}
+
             <div className="relative group cursor-pointer p-2 hover:bg-gray-200/50 rounded-full transition-all">
               <Bell size={26} className="text-[#3b1c63] group-hover:rotate-12 transition-transform duration-300" />
               <span className="absolute top-2 right-2 w-3 h-3 bg-[#ff4d4d] rounded-full border-2 border-[#F5F5F5] shadow-sm"></span>
@@ -80,7 +80,7 @@ export default function AdminDashboard() {
               <h1 className="text-5xl font-black text-[#6B39A7] tracking-tighter mb-4">
                 Bem-Vindo, Paulo
               </h1>
-              <p className="text-[#6B39A7] text-xl font-bold max-w-2xl opacity-80">
+              <p className="text-[#6B39A7] text-xl font-bold max-w-2xl">
                 Gerencie as ONGs cadastradas e acompanhe o status de cada solicitação.
               </p>
             </div>
@@ -132,7 +132,7 @@ function SidebarLink({ icon, label, active = false }: any) {
         : 'text-white/60 hover:bg-white/5 hover:text-white'}
     `}>
       {active && (
-        /* Removido shadow-luz, apenas cor sólida */
+        
         <div className="absolute left-0 w-1.5 h-6 bg-[#FFF15F] rounded-r-full" />
       )}
       <span className="transition-transform group-hover:scale-105 duration-200">
