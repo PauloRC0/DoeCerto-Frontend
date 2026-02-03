@@ -9,9 +9,9 @@ import { login } from "@/services/login.service";
 
 export default function LoginPage() {
   const router = useRouter();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isPending, setIsPending] = useState(false); 
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -21,6 +21,8 @@ export default function LoginPage() {
       return;
     }
 
+    setIsPending(true); 
+
     try {
       await login({ email, password });
       toast.success("Login realizado com sucesso!");
@@ -29,6 +31,7 @@ export default function LoginPage() {
       }, 1500);
     } catch (err: any) {
       toast.error("Email ou senha inválidos");
+      setIsPending(false); 
     }
   }
 
@@ -48,53 +51,54 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="w-full flex flex-col">
           {/* Campo Email */}
           <div className="flex flex-col mb-4">
-            <label htmlFor="email" className="text-lg font-bold mb-0">Email</label>
+            <label htmlFor="email" className="text-lg font-bold">Email</label>
             <input
               id="email"
               type="email"
+              required 
               placeholder="Digite seu email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none"
+              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg focus:outline-none"
             />
           </div>
 
           {/* Campo Senha */}
           <div className="flex flex-col mb-6">
-            <label htmlFor="password" className="text-lg font-bold mb-0">Senha</label>
+            <label htmlFor="password" className="text-lg font-bold">Senha</label>
             <input
               id="password"
               type="password"
+              required 
               placeholder="Digite sua senha"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none"
+              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg focus:outline-none"
             />
-            <div className="flex justify-end mt--2">
-              <Link 
-                href="/forgot-password" 
-                className="text-base font-bold text-white"
-              >
+            <div className="flex justify-end mt-1">
+              <Link href="/forgot-password" className="text-base font-bold text-white hover:underline">
                 Esqueceu a senha?
               </Link>
             </div>
           </div>
 
-          {/* Botão Principal */}
+          {/* Botão Principal com Loading */}
           <button
             type="submit"
-            className="w-full text-center text-2xl bg-white text-[#6B39A7] font-bold py-2 rounded-md active:scale-95 transition-transform mb-8"
+            disabled={isPending} 
+            className="w-full flex justify-center items-center text-2xl bg-white text-[#6B39A7] font-bold py-2 rounded-md active:scale-95 transition-transform mb-8 disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            Entrar
+            {isPending ? (
+              <div className="w-7 h-7 border-4 border-[#6B39A7]/30 border-t-[#6B39A7] rounded-full animate-spin"></div>
+            ) : (
+              "Entrar"
+            )}
           </button>
 
           {/* Botão de cadastro */}
           <div className="flex flex-wrap justify-center gap-x-1 text-center text-lg font-bold text-purple-100">
             <span>Ainda não possui conta?</span>
-            <Link 
-              href="/register-choice" 
-              className="text-white font-black "
-            >
+            <Link href="/register-choice" className="text-white font-black hover:underline">
               Cadastre-se agora
             </Link>
           </div>
