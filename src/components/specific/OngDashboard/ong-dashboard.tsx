@@ -82,7 +82,7 @@ export default function OngDashboard({ ong }: Props) {
 
         {/* Ajuste: removido o 'hidden' para o texto aparecer sempre */}
         <motion.button 
-          onClick={() => router.push(`/admin/edit/${ong.id}`)}
+          onClick={() => router.push(`/ong-profilesetup`)}
           className="absolute top-4 right-4 z-50 flex items-center gap-2 bg-white border-2 border-[#4a1d7a] px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl font-bold text-[#4a1d7a] shadow-sm hover:bg-purple-50 transition-colors text-xs sm:text-base"
         >
           <Pencil size={16} /> <span>Editar Perfil</span>
