@@ -1,4 +1,3 @@
-import React from 'react';
 import Image from 'next/image';
 import { Bell, User } from 'lucide-react';
 
@@ -9,18 +8,18 @@ export default function AdminDashboard() {
       <main className="flex-1 flex flex-col bg-white">
         {/* Header */}
         <header className="h-20 flex items-center justify-between px-12 bg-[#F5F5F5] border-b border-gray-200">
-          <div className="w-64" /> 
-          
+          <div className="w-64" />
+
           {/* Logo */}
           <div className="flex-shrink-0">
-             <Image 
-                src="/logo_roxa.svg" 
-                alt="DoeCerto" 
-                width={150} 
-                height={50} 
-                priority 
-                className="object-contain"
-              />
+            <Image
+              src="/logo_roxa.svg"
+              alt="DoeCerto"
+              width={150}
+              height={50}
+              priority
+              className="object-contain"
+            />
           </div>
 
           {/* Ações de Usuário */}
@@ -30,7 +29,7 @@ export default function AdminDashboard() {
               <Bell size={26} className="text-[#3b1c63] group-hover:rotate-12 transition-transform" />
               <span className="absolute top-2 right-2 w-3 h-3 bg-[#ff4d4d] rounded-full border-2 border-[#F5F5F5] shadow-sm"></span>
             </div>
-            
+
             {/* Perfil do Usuário */}
             <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-full border border-gray-200 shadow-sm hover:border-[#7c3aed]/30 transition-colors cursor-pointer">
               <span className="text-sm font-bold text-[#3b1c63] hidden xl:block tracking-tight">
@@ -44,6 +43,22 @@ export default function AdminDashboard() {
         </header>
 
         <div className="flex-1 overflow-y-auto">
+
+          <div className="px-12 py-12 bg-white">
+            {/* Conteúdo do Texto */}
+            <div>
+              <h1 className="text-5xl font-black text-[#6B39A7] tracking-tighter mb-2">
+                Bem-Vindo, Paulo
+              </h1>
+              <p className="text-[#6B39A7] text-lg font-medium max-w-2xl">
+                Gerencie as ONGs cadastradas e acompanhe o status de cada solicitação.
+              </p>
+            </div>
+          </div>
+          <div className="px-12 pb-12">
+            {/* Os cards  */}
+          </div>
+
         </div>
       </main>
     </div>
