@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
+import { Eye, EyeOff } from "lucide-react"; 
 import { registerOng } from "@/services/register-ong.service";
 
 export default function OngRegisterPage() {
@@ -15,6 +16,16 @@ export default function OngRegisterPage() {
   const [cnpj, setCnpj] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
+  const [isPending, setIsPending] = useState(false);
+
+  // Estados para visibilidade das senhas (Heurística #6)
+  const [showSenha, setShowSenha] = useState(false);
+  const [showConfirmar, setShowConfirmar] = useState(false);
+
+  // Lógica de validação visual (Heurística #1)
+  const senhasPreenchidas = senha.length > 0 && confirmarSenha.length > 0;
+  const senhasCoincidem = senhasPreenchidas && senha === confirmarSenha;
+  const senhasDiferentes = senhasPreenchidas && senha !== confirmarSenha;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -28,6 +39,8 @@ export default function OngRegisterPage() {
       toast.error("As senhas não coincidem");
       return;
     }
+
+    setIsPending(true);
 
     try {
       await registerOng({
@@ -43,25 +56,18 @@ export default function OngRegisterPage() {
         router.push("/login");
       }, 1200);
     } catch (err) {
-      toast.error("Erro ao cadastrar ONG");
+      toast.error("Erro ao cadastrar ONG. Verifique os dados.");
+      setIsPending(false);
     }
   }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#6B39A7] text-white font-sans px-6 py-12">
-
       <Toaster position="top-center" />
 
       <div className="w-full max-w-xs flex flex-col items-center">
-
         <div className="mb-4">
-          <Image
-            src="/logo.svg"
-            alt="DoeCerto"
-            width={120}
-            height={120}
-            priority
-          />
+          <Image src="/logo.svg" alt="DoeCerto" width={120} height={120} priority />
         </div>
 
         <h1 className="text-4xl -mt-2 font-bold mb-8 text-center">
@@ -69,81 +75,124 @@ export default function OngRegisterPage() {
         </h1>
 
         <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
-
+          {/* Nome */}
           <div className="flex flex-col">
             <label htmlFor="nome" className="text-base font-bold mb-1">Nome</label>
             <input
               id="nome"
               type="text"
-              placeholder="Digite seu nome"
+              required
+              placeholder="Digite o nome da ONG"
               value={nome}
               onChange={(e) => setNome(e.target.value)}
-              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
+              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg focus:outline-none focus:ring-2 focus:ring-purple-300 transition-all"
             />
           </div>
 
+          {/* Email */}
           <div className="flex flex-col">
             <label htmlFor="email" className="text-base font-bold mb-1">Email</label>
             <input
               id="email"
               type="email"
-              placeholder="Digite seu email"
+              required
+              placeholder="exemplo@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
+              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg focus:outline-none focus:ring-2 focus:ring-purple-300 transition-all"
             />
           </div>
 
+          {/* CNPJ */}
           <div className="flex flex-col">
-            <label htmlFor="cnpj" className="text-base font-bold mb-1">Cnpj</label>
+            <label htmlFor="cnpj" className="text-base font-bold mb-1">CNPJ</label>
             <input
               id="cnpj"
               type="text"
-              placeholder="Digite o CNPJ da ONG"
+              required
+              placeholder="00.000.000/0000-00"
               value={cnpj}
               onChange={(e) => setCnpj(e.target.value)}
-              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
+              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg focus:outline-none focus:ring-2 focus:ring-purple-300 transition-all"
             />
           </div>
 
-          <div className="flex flex-col">
+          {/* Senha */}
+          <div className="flex flex-col relative">
             <label htmlFor="senha" className="text-base font-bold mb-1">Senha</label>
-            <input
-              id="senha"
-              type="password"
-              placeholder="Digite sua senha"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
-            />
+            <div className="relative">
+              <input
+                id="senha"
+                type={showSenha ? "text" : "password"}
+                required
+                minLength={6}
+                placeholder="Mínimo 6 caracteres"
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+                className={`w-full bg-white p-2 pr-10 rounded-md text-black text-xl placeholder:text-lg focus:outline-none focus:ring-2 transition-all ${
+                  senhasCoincidem ? "ring-2 ring-green-400" : "focus:ring-purple-300"
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowSenha(!showSenha)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                {/* Correção lógica: Se está mostrando a senha, mostra o olho aberto. Se não, mostra o cortado. */}
+                {showSenha ? <Eye size={20} /> : <EyeOff size={20} />}
+              </button>
+            </div>
           </div>
 
+          {/* Confirmar Senha */}
           <div className="flex flex-col">
             <label htmlFor="confirmarSenha" className="text-base font-bold mb-1">Confirmar Senha</label>
-            <input
-              id="confirmarSenha"
-              type="password"
-              placeholder="Confirme sua senha"
-              value={confirmarSenha}
-              onChange={(e) => setConfirmarSenha(e.target.value)}
-              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
-            />
+            <div className="relative">
+              <input
+                id="confirmarSenha"
+                type={showConfirmar ? "text" : "password"}
+                required
+                placeholder="Repita sua senha"
+                value={confirmarSenha}
+                onChange={(e) => setConfirmarSenha(e.target.value)}
+                className={`w-full bg-white p-2 pr-10 rounded-md text-black text-xl placeholder:text-lg focus:outline-none focus:ring-2 transition-all ${
+                  senhasCoincidem ? "ring-2 ring-green-400" : 
+                  senhasDiferentes ? "ring-2 ring-red-400" : "focus:ring-purple-300"
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmar(!showConfirmar)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                {showConfirmar ? <Eye size={20} /> : <EyeOff size={20} />}
+              </button>
+            </div>
+            {senhasDiferentes && (
+              <span className="text-red-300 text-sm font-bold mt-1 animate-pulse">
+                As senhas não coincidem
+              </span>
+            )}
           </div>
 
-          <p className="text-base text-right font-bold -mt-4 mb-4">
+          <p className="text-base text-right font-bold -mt-2 mb-4">
             Já possui conta?{" "}
-            <Link href="/login" className="font-bold text-[#E0C4FF]">
+            <Link href="/login" className="font-bold text-[#E0C4FF] hover:underline transition-all">
               Fazer Login
             </Link>
           </p>
 
           <button
             type="submit"
-            className="w-3/4 mx-auto text-center text-xl bg-white text-purple-700 font-bold py-2 rounded-md active:scale-95 transition-transform"
+            disabled={isPending}
+            className="w-full flex justify-center items-center text-center text-xl bg-white text-purple-700 font-bold py-2 rounded-md active:scale-95 transition-all disabled:opacity-70 shadow-md"
           >
-            Cadastrar
+            {isPending ? (
+              <div className="w-7 h-7 border-4 border-purple-700/30 border-t-purple-700 rounded-full animate-spin"></div>
+            ) : (
+              "Cadastrar"
+            )}
           </button>
-
         </form>
       </div>
     </div>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
+import { Eye, EyeOff } from "lucide-react";
 import { registerDonor } from "@/services/register.service";
 
 export default function Register() {
@@ -15,6 +16,16 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
+  const [isPending, setIsPending] = useState(false);
+
+ 
+  const [showSenha, setShowSenha] = useState(false);
+  const [showConfirmar, setShowConfirmar] = useState(false);
+
+
+  const senhasPreenchidas = senha.length > 0 && confirmarSenha.length > 0;
+  const senhasCoincidem = senhasPreenchidas && senha === confirmarSenha;
+  const senhasDiferentes = senhasPreenchidas && senha !== confirmarSenha;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -28,6 +39,8 @@ export default function Register() {
       toast.error("As senhas não coincidem");
       return;
     }
+
+    setIsPending(true);
 
     try {
       await registerDonor({
@@ -44,16 +57,15 @@ export default function Register() {
       }, 1500);
     } catch (err) {
       toast.error("Erro ao realizar cadastro");
+      setIsPending(false);
     }
   }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#6B39A7] text-white font-sans px-6 py-12">
-
       <Toaster position="top-center" />
 
       <div className="w-full max-w-xs flex flex-col items-center">
-
         <div className="mb-4">
           <Image src="/logo.svg" alt="DoeCerto" width={120} height={120} priority />
         </div>
@@ -63,79 +75,122 @@ export default function Register() {
         </h1>
 
         <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
-
+          {/* Nome */}
           <div className="flex flex-col">
             <label htmlFor="nome" className="text-base font-bold mb-1">Nome</label>
             <input
               id="nome"
               type="text"
-              placeholder="Digite seu nome"
+              required
+              placeholder="Digite seu nome completo"
               value={nome}
               onChange={(e) => setNome(e.target.value)}
-              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
+              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg focus:outline-none focus:ring-2 focus:ring-purple-300 transition-all"
             />
           </div>
 
+          {/* CPF */}
           <div className="flex flex-col">
             <label htmlFor="cpf" className="text-base font-bold mb-1">CPF</label>
             <input
               id="cpf"
               type="text"
-              placeholder="Digite seu CPF"
+              required
+              placeholder="000.000.000-00"
               value={cpf}
               onChange={(e) => setCpf(e.target.value)}
-              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
+              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg focus:outline-none focus:ring-2 focus:ring-purple-300 transition-all"
             />
           </div>
 
+          {/* Email */}
           <div className="flex flex-col">
             <label htmlFor="email" className="text-base font-bold mb-1">Email</label>
             <input
               id="email"
               type="email"
-              placeholder="Digite seu email"
+              required
+              placeholder="seu@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
+              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg focus:outline-none focus:ring-2 focus:ring-purple-300 transition-all"
             />
           </div>
 
-          <div className="flex flex-col">
+          {/* Senha */}
+          <div className="flex flex-col relative">
             <label htmlFor="senha" className="text-base font-bold mb-1">Senha</label>
-            <input
-              id="senha"
-              type="password"
-              placeholder="Digite sua senha"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
-            />
+            <div className="relative">
+              <input
+                id="senha"
+                type={showSenha ? "text" : "password"}
+                required
+                minLength={6}
+                placeholder="Mínimo 6 caracteres"
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+                className={`w-full bg-white p-2 pr-10 rounded-md text-black text-xl placeholder:text-lg focus:outline-none focus:ring-2 transition-all ${
+                  senhasCoincidem ? "ring-2 ring-green-400" : "focus:ring-purple-300"
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowSenha(!showSenha)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                {showSenha ? <Eye size={20} /> : <EyeOff size={20} />}
+              </button>
+            </div>
           </div>
 
+          {/* Confirmar Senha */}
           <div className="flex flex-col">
             <label htmlFor="confirmarSenha" className="text-base font-bold mb-1">Confirmar Senha</label>
-            <input
-              id="confirmarSenha"
-              type="password"
-              placeholder="Confirme sua senha"
-              value={confirmarSenha}
-              onChange={(e) => setConfirmarSenha(e.target.value)}
-              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
-            />
+            <div className="relative">
+              <input
+                id="confirmarSenha"
+                type={showConfirmar ? "text" : "password"}
+                required
+                placeholder="Repita sua senha"
+                value={confirmarSenha}
+                onChange={(e) => setConfirmarSenha(e.target.value)}
+                className={`w-full bg-white p-2 pr-10 rounded-md text-black text-xl placeholder:text-lg focus:outline-none focus:ring-2 transition-all ${
+                  senhasCoincidem ? "ring-2 ring-green-400" : 
+                  senhasDiferentes ? "ring-2 ring-red-400" : "focus:ring-purple-300"
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmar(!showConfirmar)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                {showConfirmar ? <Eye size={20} /> : <EyeOff size={20} />}
+              </button>
+            </div>
+            {senhasDiferentes && (
+              <span className="text-red-300 text-sm font-bold mt-1">
+                As senhas não coincidem
+              </span>
+            )}
           </div>
 
-          <p className="text-base text-right font-bold -mt-4 mb-4">
+          <p className="text-base text-right font-bold -mt-2 mb-4">
             Já possui conta?{" "}
-            <Link href="/login" className="font-bold text-[#E0C4FF]">
+            <Link href="/login" className="font-bold text-[#E0C4FF] hover:underline transition-all">
               Fazer Login
             </Link>
           </p>
 
           <button
             type="submit"
-            className="w-3/4 mx-auto text-center text-xl bg-white text-purple-700 font-bold py-2 rounded-md active:scale-95 transition-transform"
+            disabled={isPending}
+            className="w-full flex justify-center items-center bg-white text-purple-700 font-bold py-3 rounded-md active:scale-95 transition-all disabled:opacity-70 shadow-md text-xl"
           >
-            Cadastrar
+            {isPending ? (
+              <div className="w-7 h-7 border-4 border-purple-700/30 border-t-purple-700 rounded-full animate-spin"></div>
+            ) : (
+              "Cadastrar"
+            )}
           </button>
         </form>
       </div>
