@@ -1,21 +1,21 @@
 import Image from 'next/image';
-import { 
-  Bell, 
-  User, 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
-  Home, 
-  LayoutDashboard, 
-  MessageSquare, 
-  Settings, 
-  LogOut 
+import {
+  Bell,
+  User,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Home,
+  LayoutDashboard,
+  MessageSquare,
+  Settings,
+  LogOut
 } from 'lucide-react';
 
 export default function AdminDashboard() {
   return (
     <div className="flex h-screen bg-white font-sans text-gray-800 overflow-hidden">
-      
+
       {/* Sidebar Lateral */}
       <aside className="w-72 bg-[#6B39A7] text-white flex flex-col shrink-0 shadow-2xl z-20">
         <div className="p-8 flex-1">
@@ -40,26 +40,33 @@ export default function AdminDashboard() {
 
       {/* Área Principal */}
       <main className="flex-1 flex flex-col bg-[#F8F9FA] overflow-hidden">
-        
+
         {/* Header */}
-        <header className="h-20 flex items-center justify-between px-12 bg-[#F5F5F5] border-b border-gray-200 shrink-0">
-          <div className="w-64" />
-          <div className="flex-shrink-0">
-            <Image
-              src="/logo_roxa.svg"
-              alt="DoeCerto"
-              width={150}
-              height={50}
-              priority
-              className="object-contain"
-            />
+        <header className="h-20 flex items-center justify-between px-12 bg-[#F5F5F5] border-b border-gray-200 shrink-0 relative">
+
+          {/* Logo*/}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="md:ml-[-288px] flex items-center justify-center">
+              <Image
+                src="/logo_roxa.svg"
+                alt="DoeCerto"
+                width={150}
+                height={50}
+                priority
+                className="object-contain pointer-events-auto"
+              />
+            </div>
           </div>
-          <div className="w-64 flex items-center justify-end gap-5">
+
+          <div className="flex-1" />
+
+          {/* Perfil e Notificações */}
+          <div className="flex-1 flex items-center justify-end gap-5 z-10">
             <div className="relative group cursor-pointer p-2 hover:bg-gray-200/50 rounded-full transition-all">
               <Bell size={26} className="text-[#3b1c63] group-hover:rotate-12 transition-transform duration-300" />
               <span className="absolute top-2 right-2 w-3 h-3 bg-[#ff4d4d] rounded-full border-2 border-[#F5F5F5] shadow-sm"></span>
             </div>
-            
+
             <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-full border border-gray-200 shadow-sm hover:border-[#7c3aed]/30 transition-colors cursor-pointer">
               <span className="text-sm font-bold text-[#3b1c63] hidden xl:block tracking-tight">
                 Paulo Ricardo
@@ -74,7 +81,7 @@ export default function AdminDashboard() {
         {/* Conteúdo Centralizado */}
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-[1200px] mx-auto w-full px-8">
-            
+
             {/* Texto de Bem-vindo  */}
             <div className="pt-24 pb-16 text-center md:text-left">
               <h1 className="text-5xl font-black text-[#6B39A7] tracking-tighter mb-4">
@@ -87,7 +94,7 @@ export default function AdminDashboard() {
 
             {/* Grid de Cards */}
             <div className="pb-16 flex justify-center md:justify-start">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-10 w-full max-w-[1040px]"> 
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-10 w-full max-w-[1040px]">
                 <StatusCard
                   title="ONGs Pendentes"
                   count="12"
@@ -128,8 +135,8 @@ function SidebarLink({ icon, label, active = false }: any) {
   return (
     <div className={`
       flex items-center gap-4 px-5 py-3.5 cursor-pointer transition-all rounded-xl relative group
-      ${active 
-        ? 'bg-white/10 text-white font-bold' 
+      ${active
+        ? 'bg-white/10 text-white font-bold'
         : 'text-white/60 hover:bg-white/5 hover:text-white'}
     `}>
       {active && (
