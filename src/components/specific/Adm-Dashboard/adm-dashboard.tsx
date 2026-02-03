@@ -20,7 +20,7 @@ export default function AdminDashboard() {
       <aside className="w-72 bg-[#6B39A7] text-white flex flex-col shrink-0 shadow-2xl z-20">
         <div className="p-8 flex-1">
           <div className="mb-12 mt-4 text-center">
-            <h2 className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">
+            <h2 className="text-[10px] font-black uppercase tracking-[0.3em]">
               Painel do Administrador
             </h2>
           </div>
