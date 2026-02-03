@@ -55,7 +55,6 @@ export default function AdminDashboard() {
             />
           </div>
           <div className="w-64 flex items-center justify-end gap-5">
-
             <div className="relative group cursor-pointer p-2 hover:bg-gray-200/50 rounded-full transition-all">
               <Bell size={26} className="text-[#3b1c63] group-hover:rotate-12 transition-transform duration-300" />
               <span className="absolute top-2 right-2 w-3 h-3 bg-[#ff4d4d] rounded-full border-2 border-[#F5F5F5] shadow-sm"></span>
@@ -76,17 +75,19 @@ export default function AdminDashboard() {
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-[1200px] mx-auto w-full px-8">
             
-            <div className="pt-16 pb-12 text-center md:text-left">
+            {/* Texto de Bem-vindo  */}
+            <div className="pt-24 pb-16 text-center md:text-left">
               <h1 className="text-5xl font-black text-[#6B39A7] tracking-tighter mb-4">
                 Bem-Vindo, Paulo
               </h1>
-              <p className="text-[#6B39A7] text-xl font-bold max-w-2xl">
+              <p className="text-[#6B39A7] text-xl font-bold max-w-2xl opacity-90">
                 Gerencie as ONGs cadastradas e acompanhe o status de cada solicitação.
               </p>
             </div>
 
+            {/* Grid de Cards */}
             <div className="pb-16 flex justify-center md:justify-start">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-10 w-full max-w-[1000px]"> 
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-10 w-full max-w-[1040px]"> 
                 <StatusCard
                   title="ONGs Pendentes"
                   count="12"
@@ -132,7 +133,6 @@ function SidebarLink({ icon, label, active = false }: any) {
         : 'text-white/60 hover:bg-white/5 hover:text-white'}
     `}>
       {active && (
-        
         <div className="absolute left-0 w-1.5 h-6 bg-[#FFF15F] rounded-r-full" />
       )}
       <span className="transition-transform group-hover:scale-105 duration-200">
@@ -145,7 +145,11 @@ function SidebarLink({ icon, label, active = false }: any) {
 
 function StatusCard({ title, count, label, icon, bgColor, innerColor, btnColor }: any) {
   return (
-    <div className={`${bgColor} rounded-[3rem] p-7 flex flex-col items-center shadow-sm hover:shadow-md transition-all duration-300`}>
+    <div className={`
+      ${bgColor} rounded-[3rem] p-7 flex flex-col items-center 
+      shadow-md transition-all duration-300 ease-out
+      hover:scale-105 hover:shadow-xl cursor-default
+    `}>
       <div className={`${innerColor} w-full rounded-[2.5rem] py-12 flex flex-col items-center mb-6 shadow-lg`}>
         <div className="mb-4">{icon}</div>
         <h3 className="text-white font-bold text-lg mb-2 text-center leading-tight">
