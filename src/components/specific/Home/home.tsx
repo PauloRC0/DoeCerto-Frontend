@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRef, useState, useEffect } from "react";
-import { FiSearch, FiMenu, FiX } from "react-icons/fi";
+import { FiSearch, FiMenu, FiX, FiUser, FiLogOut } from "react-icons/fi";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import DonateModal from "@/components/specific/DonateModal";
@@ -40,14 +40,42 @@ export default function HomePage() {
   const router = useRouter();
   const carouselRef = useRef<HTMLDivElement | null>(null);
   const chipsRef = useRef<HTMLDivElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   const [query, setQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedOng, setSelectedOng] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [userAvatar, setUserAvatar] = useState<string>("https://placehold.co/80x80/ddd/aaa.png");
 
   const [ongs, setOngs] = useState<Ong[]>([]);
   const [page, setPage] = useState(0);
+
+  // Carrega avatar do localStorage
+  useEffect(() => {
+    const savedAvatar = localStorage.getItem('userAvatar');
+    if (savedAvatar) {
+      setUserAvatar(savedAvatar);
+    }
+  }, []);
+
+  // Fecha o menu quando clicar fora
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    }
+
+    if (isMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isMenuOpen]);
 
   // ---------------- ONG DO BANCO (COM PAGINAÇÃO) ----------------
 
@@ -116,24 +144,75 @@ useEffect(() => {
     router.push(`/pix?id=${selectedOng}`);
   }
 
+  async function handleLogout() {
+    try {
+      await api("/auth/logout", {
+        method: "POST",
+      });
+      
+      // Limpa o cookie manualmente também
+      document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      
+      router.push("/login");
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+      // Mesmo com erro, redireciona
+      router.push("/login");
+    }
+  }
+
+  function goToProfile() {
+    router.push("/dashboard");
+    setIsMenuOpen(false);
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
       {/* Header */}
       <header className="px-5 pt-6 pb-4 flex items-center justify-between">
         <Image src="/logo_roxa.svg" alt="DoeCerto" width={120} height={120} priority />
 
-        <div className="flex items-center gap-3">
-          <button className="p-2 rounded-md hover:bg-gray-100 active:scale-95 transition">
+        <div className="flex items-center gap-3 relative" ref={menuRef}>
+          <button 
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="p-2 rounded-md hover:bg-gray-100 active:scale-95 transition"
+          >
             <FiMenu size={20} />
           </button>
 
-          <div className="w-9 h-9 rounded-full bg-gray-200 overflow-hidden">
+          <div 
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="w-9 h-9 rounded-full bg-gray-200 overflow-hidden cursor-pointer hover:ring-2 hover:ring-purple-500 transition"
+          >
             <img
-              src="https://placehold.co/80x80/ddd/aaa.png"
+              src={userAvatar}
               alt="avatar"
               className="w-full h-full object-cover"
             />
           </div>
+
+          {/* Dropdown Menu */}
+          {isMenuOpen && (
+            <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50 animate-fadeIn">
+              <button
+                onClick={goToProfile}
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition text-left"
+              >
+                <FiUser size={18} className="text-purple-600" />
+                <span className="font-medium text-gray-700">Meu Perfil</span>
+              </button>
+
+              <div className="border-t border-gray-100 my-1"></div>
+
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition text-left"
+              >
+                <FiLogOut size={18} className="text-red-600" />
+                <span className="font-medium text-red-600">Sair</span>
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
