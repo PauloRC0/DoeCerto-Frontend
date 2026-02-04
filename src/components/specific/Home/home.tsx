@@ -14,6 +14,7 @@ type Ong = {
   name: string;
   img: string;
   distance: string;
+  category: string; // Categoria da ONG
 };
 
 type OngApi = {
@@ -32,6 +33,18 @@ const PLACEHOLDER_IMAGES = [
   "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=60",
   "https://images.unsplash.com/photo-1503457574462-bd27054394c1?auto=format&w=600",
   "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=800&q=60",
+];
+
+// Categorias mockadas para cada ONG
+const MOCK_CATEGORIES = [
+  "Proteção Animal",
+  "Educação", 
+  "Combate à Fome",
+  "Educação",
+  "Meio Ambiente",
+  "Idosos",
+  "Saúde",
+  "Proteção Animal"
 ];
 
 const TAKE = 8;
@@ -92,6 +105,7 @@ useEffect(() => {
         name: ong.name,
         img: PLACEHOLDER_IMAGES[(page * TAKE + index) % PLACEHOLDER_IMAGES.length],
         distance: "7.2 km",
+        category: MOCK_CATEGORIES[(page * TAKE + index) % MOCK_CATEGORIES.length], // Adiciona categoria mockada
       }));
 
       setOngs((prev) => {
@@ -122,6 +136,21 @@ useEffect(() => {
     "Idosos",
   ];
 
+  // ============ FILTROS ============
+  
+  // Filtra ONGs baseado na pesquisa e categoria selecionada
+  const filteredOngs = ongs.filter((ong) => {
+    // Filtro de pesquisa por nome
+    const matchesSearch = query === "" || 
+      ong.name.toLowerCase().includes(query.toLowerCase());
+    
+    // Filtro de categoria
+    const matchesCategory = selectedCategory === null || 
+      ong.category === selectedCategory;
+    
+    return matchesSearch && matchesCategory;
+  });
+
   function openDonateModal(ongId: number) {
     setSelectedOng(ongId);
     setIsModalOpen(true);
@@ -130,7 +159,7 @@ useEffect(() => {
   function goToDonateItems() {
     if (!selectedOng) return;
 
-    const ong = ongs.find((o) => o.id === selectedOng);
+    const ong = filteredOngs.find((o) => o.id === selectedOng);
     if (!ong) return;
 
     router.push(
@@ -255,6 +284,17 @@ useEffect(() => {
         </div>
       </div>
 
+      {/* Contador de resultados */}
+      {(query || selectedCategory) && (
+        <div className="px-5 mt-3">
+          <p className="text-sm text-gray-600">
+            {filteredOngs.length} {filteredOngs.length === 1 ? 'ONG encontrada' : 'ONGs encontradas'}
+            {query && ` para "${query}"`}
+            {selectedCategory && ` em ${selectedCategory}`}
+          </p>
+        </div>
+      )}
+
       {/* Carrossel */}
       <section className="mt-5 px-5">
         <div className="flex items-center justify-between mb-3">
@@ -263,36 +303,47 @@ useEffect(() => {
           </h2>
         </div>
         <div className="flex gap-4 overflow-x-auto pb-3 no-scrollbar">
-          {ongs.map((ong) => (
-            <div
-              key={`carousel-${ong.id}`}
-              onClick={() => router.push(`/ong-public-profile/${ong.id}`)}
-              className="min-w-[220px] bg-white rounded-2xl shadow-md overflow-hidden cursor-pointer"
-            >
-              <div className="w-full h-[170px] bg-gray-200">
-                <img src={ong.img} alt={ong.name} className="w-full h-full object-cover" />
-              </div>
-
-              <div className="p-3">
-                <h3 className="text-sm font-semibold">{ong.name}</h3>
-
-                <div className="flex items-center gap-2 text-gray-500 mt-1">
-                  <FaMapMarkerAlt size={12} />
-                  <span>{ong.distance}</span>
+          {filteredOngs.length === 0 ? (
+            <div className="w-full text-center py-8 text-gray-500">
+              Nenhuma ONG encontrada
+            </div>
+          ) : (
+            filteredOngs.map((ong) => (
+              <div
+                key={`carousel-${ong.id}`}
+                onClick={() => router.push(`/ong-public-profile/${ong.id}`)}
+                className="min-w-[220px] bg-white rounded-2xl shadow-md overflow-hidden cursor-pointer"
+              >
+                <div className="w-full h-[170px] bg-gray-200">
+                  <img src={ong.img} alt={ong.name} className="w-full h-full object-cover" />
                 </div>
 
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openDonateModal(ong.id);
-                  }}
-                  className="mt-3 w-full bg-[#6B21A8] text-white py-1.5 rounded-lg text-sm font-semibold"
-                >
-                  Doar
-                </button>
+                <div className="p-3">
+                  <h3 className="text-sm font-semibold">{ong.name}</h3>
+                  
+                  {/* Badge de categoria */}
+                  <span className="inline-block mt-1 px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full">
+                    {ong.category}
+                  </span>
+
+                  <div className="flex items-center gap-2 text-gray-500 mt-1">
+                    <FaMapMarkerAlt size={12} />
+                    <span>{ong.distance}</span>
+                  </div>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openDonateModal(ong.id);
+                    }}
+                    className="mt-3 w-full bg-[#6B21A8] text-white py-1.5 rounded-lg text-sm font-semibold"
+                  >
+                    Doar
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </section>
 
@@ -305,32 +356,44 @@ useEffect(() => {
 
         <div className="space-y-4"></div>
 
-        {ongs.map((ong) => (
-          <div
-            key={`list-${ong.id}`}
-            onClick={() => router.push(`/ong-public-profile/${ong.id}`)}
-            className="flex items-center gap-4 bg-white rounded-2xl shadow-md p-4 cursor-pointer"
-          >
-            <div className="w-28 h-28 rounded-xl overflow-hidden">
-              <img src={ong.img} alt={ong.name} className="w-full h-full object-cover" />
-            </div>
-
-            <div className="flex-1">
-              <h3 className="font-semibold">{ong.name}</h3>
-              <p className="text-sm text-gray-500">{ong.distance}</p>
-            </div>
-
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                openDonateModal(ong.id);
-              }}
-              className="bg-[#6B21A8] text-white px-4 py-2 rounded-lg text-sm font-semibold"
-            >
-              Doar
-            </button>
+        {filteredOngs.length === 0 ? (
+          <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
+            <p className="text-gray-600 text-lg">Nenhuma ONG encontrada</p>
+            <p className="text-gray-500 text-sm mt-2">
+              Tente ajustar sua pesquisa ou filtros
+            </p>
           </div>
-        ))}
+        ) : (
+          filteredOngs.map((ong) => (
+            <div
+              key={`list-${ong.id}`}
+              onClick={() => router.push(`/ong-public-profile/${ong.id}`)}
+              className="flex items-center gap-4 bg-white rounded-2xl shadow-md p-4 cursor-pointer"
+            >
+              <div className="w-28 h-28 rounded-xl overflow-hidden">
+                <img src={ong.img} alt={ong.name} className="w-full h-full object-cover" />
+              </div>
+
+              <div className="flex-1">
+                <h3 className="font-semibold">{ong.name}</h3>
+                <span className="inline-block mt-1 px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full">
+                  {ong.category}
+                </span>
+                <p className="text-sm text-gray-500 mt-1">{ong.distance}</p>
+              </div>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openDonateModal(ong.id);
+                }}
+                className="bg-[#6B21A8] text-white px-4 py-2 rounded-lg text-sm font-semibold"
+              >
+                Doar
+              </button>
+            </div>
+          ))
+        )}
       </section>
 
       {/* LOAD MAIS (paginação invisível de layout) */}
