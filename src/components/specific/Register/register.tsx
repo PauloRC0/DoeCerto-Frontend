@@ -5,8 +5,9 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, AlertCircle } from "lucide-react";
 import { registerDonor } from "@/services/register.service";
+import { formatCPF, removeFormatting, validateCPF } from "@/utils/documentValidation";
 
 export default function Register() {
   const router = useRouter();
@@ -18,20 +19,55 @@ export default function Register() {
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [isPending, setIsPending] = useState(false);
 
- 
   const [showSenha, setShowSenha] = useState(false);
   const [showConfirmar, setShowConfirmar] = useState(false);
-
+  
+  // Estados para validação do CPF
+  const [cpfError, setCpfError] = useState("");
+  const [cpfShake, setCpfShake] = useState(false);
 
   const senhasPreenchidas = senha.length > 0 && confirmarSenha.length > 0;
   const senhasCoincidem = senhasPreenchidas && senha === confirmarSenha;
   const senhasDiferentes = senhasPreenchidas && senha !== confirmarSenha;
+
+  // Handler do CPF com máscara e validação
+  function handleCPFChange(value: string) {
+    const formatted = formatCPF(value);
+    setCpf(formatted);
+    
+    // Limpa erro ao digitar
+    if (cpfError) {
+      setCpfError("");
+    }
+
+    // Se chegou no limite, valida
+    const numbers = removeFormatting(formatted);
+    if (numbers.length === 11) {
+      if (!validateCPF(formatted)) {
+        setCpfError("CPF inválido");
+        triggerShake();
+      }
+    }
+  }
+
+  function triggerShake() {
+    setCpfShake(true);
+    setTimeout(() => setCpfShake(false), 500);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     if (!nome || !cpf || !email || !senha || !confirmarSenha) {
       toast.error("Preencha todos os campos");
+      return;
+    }
+
+    // Valida CPF antes de submeter
+    if (!validateCPF(cpf)) {
+      setCpfError("CPF inválido");
+      triggerShake();
+      toast.error("CPF inválido");
       return;
     }
 
@@ -43,11 +79,14 @@ export default function Register() {
     setIsPending(true);
 
     try {
+      // Remove formatação antes de enviar para API
+      const cpfNumbers = removeFormatting(cpf);
+      
       await registerDonor({
         name: nome,
         email,
         password: senha,
-        cpf,
+        cpf: cpfNumbers,
       });
 
       toast.success("Cadastro realizado com sucesso!");
@@ -90,17 +129,38 @@ export default function Register() {
           </div>
 
           {/* CPF */}
-          <div className="flex flex-col">
+          <div className="flex flex-col relative">
             <label htmlFor="cpf" className="text-base font-bold mb-1">CPF</label>
-            <input
-              id="cpf"
-              type="text"
-              required
-              placeholder="000.000.000-00"
-              value={cpf}
-              onChange={(e) => setCpf(e.target.value)}
-              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg focus:outline-none focus:ring-2 focus:ring-purple-300 transition-all"
-            />
+            <div className="relative">
+              <input
+                id="cpf"
+                type="text"
+                required
+                placeholder="000.000.000-00"
+                value={cpf}
+                onChange={(e) => handleCPFChange(e.target.value)}
+                maxLength={14}
+                className={`w-full bg-white p-2 rounded-md text-black text-xl placeholder:text-lg focus:outline-none focus:ring-2 transition-all ${
+                  cpfError 
+                    ? "ring-2 ring-red-400 shake" 
+                    : "focus:ring-purple-300"
+                } ${cpfShake ? "shake" : ""}`}
+              />
+              {cpfError && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <AlertCircle size={20} className="text-red-500" />
+                </div>
+              )}
+            </div>
+            {cpfError && (
+              <div className="mt-1 flex items-center gap-1 text-red-300 text-sm font-bold animate-fadeIn">
+                <AlertCircle size={14} />
+                <span>{cpfError}</span>
+              </div>
+            )}
+            <span className="text-xs text-purple-200 mt-1">
+              O CPF deve conter exatamente 11 dígitos
+            </span>
           </div>
 
           {/* Email */}
