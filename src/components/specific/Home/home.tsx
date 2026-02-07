@@ -92,24 +92,25 @@ export default function HomePage() {
 
   // ---------------- ONG DO BANCO (COM PAGINAÇÃO) ----------------
 
-  useEffect(() => {
+useEffect(() => {
     async function loadOngs() {
       try {
         const res = await api<any>(`/catalog?offset=${page * TAKE}&limit=${TAKE}`);
 
         const sections = res.data;
-        if (!sections || sections.length === 0) return;
-        const allOngsFromApi = sections.flatMap((section: any) => section.data);
+        if (!sections || !Array.isArray(sections)) return;
+
+        const allOngsFromApi = sections.flatMap((section: any) => section.items || []);
+
         const mapped: Ong[] = allOngsFromApi.map((ong: any, index: number) => ({
-          id: ong.userId,
+          id: ong.id,
           name: ong.name,
           img: PLACEHOLDER_IMAGES[(page * TAKE + index) % PLACEHOLDER_IMAGES.length],
           distance: "7.2 km",
-          category: MOCK_CATEGORIES[(page * TAKE + index) % MOCK_CATEGORIES.length], // Adiciona categoria mockada
+          category: ong.categories?.[0]?.name || MOCK_CATEGORIES[(page * TAKE + index) % MOCK_CATEGORIES.length],
         }));
 
         setOngs((prev) => {
-
           const combined = [...prev, ...mapped];
           const uniqueMap = new Map();
 
