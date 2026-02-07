@@ -106,13 +106,13 @@ export default function Donation({
 
         {/* Endereço */}
         <div className="flex flex-col gap-1">
-          <label className="font-semibold text-gray-700">Ponto de Entrega</label>
+          <label className="font-semibold text-gray-700">Descrição</label>
           <input
             type="text"
             value={endereco}
             onChange={(e) => setEndereco(e.target.value)}
             required
-            placeholder="Ex: Rua das Flores, 123"
+            placeholder="Ex: Esse item está em bom estado, usado apenas 2 vezes."
             className="p-3 rounded-xl border border-gray-300 text-gray-700 focus:border-purple-600 focus:ring-2 focus:ring-purple-100 outline-none"
           />
         </div>
