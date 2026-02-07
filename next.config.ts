@@ -3,13 +3,16 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactCompiler: true,
 
-  // Gera arquivos estáticos (necessário pro Capacitor)
-  //output: "export",
+  // 1. ATIVE ISSO (É obrigatório para o Capacitor ver o index.html)
+  output: "export",
 
-  // Define a pasta onde o build será exportado
-  distDir: "out",
+  // 2. REMOVA OU COMENTE O distDir
+  // O Next já cria a pasta "out" por padrão quando o output é "export"
+  // distDir: "out", 
 
-  // Evita erros do next/image (Capacitor não tem servidor Node)
+  // 3. Adicione isso para garantir a estrutura de pastas que o Capacitor ama
+  trailingSlash: true,
+
   images: {
     unoptimized: true,
   },
