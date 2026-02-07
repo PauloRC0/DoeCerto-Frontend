@@ -38,7 +38,7 @@ const PLACEHOLDER_IMAGES = [
 // Categorias mockadas para cada ONG
 const MOCK_CATEGORIES = [
   "Proteção Animal",
-  "Educação", 
+  "Educação",
   "Combate à Fome",
   "Educação",
   "Meio Ambiente",
@@ -92,40 +92,40 @@ export default function HomePage() {
 
   // ---------------- ONG DO BANCO (COM PAGINAÇÃO) ----------------
 
-useEffect(() => {
-  async function loadOngs() {
-    try {
-      const res = await api<any>(`/catalog?offset=${page * TAKE}&limit=${TAKE}`);
-      
-      const sections = res.data;
-      if (!sections || sections.length === 0) return;
-      const allOngsFromApi = sections.flatMap((section: any) => section.data);
-      const mapped: Ong[] = allOngsFromApi.map((ong: any, index: number) => ({
-        id: ong.userId,
-        name: ong.name,
-        img: PLACEHOLDER_IMAGES[(page * TAKE + index) % PLACEHOLDER_IMAGES.length],
-        distance: "7.2 km",
-        category: MOCK_CATEGORIES[(page * TAKE + index) % MOCK_CATEGORIES.length], // Adiciona categoria mockada
-      }));
+  useEffect(() => {
+    async function loadOngs() {
+      try {
+        const res = await api<any>(`/catalog?offset=${page * TAKE}&limit=${TAKE}`);
 
-      setOngs((prev) => {
-       
-        const combined = [...prev, ...mapped];
-        const uniqueMap = new Map();
-        
-        combined.forEach(ong => {
-          uniqueMap.set(ong.id, ong);
+        const sections = res.data;
+        if (!sections || sections.length === 0) return;
+        const allOngsFromApi = sections.flatMap((section: any) => section.data);
+        const mapped: Ong[] = allOngsFromApi.map((ong: any, index: number) => ({
+          id: ong.userId,
+          name: ong.name,
+          img: PLACEHOLDER_IMAGES[(page * TAKE + index) % PLACEHOLDER_IMAGES.length],
+          distance: "7.2 km",
+          category: MOCK_CATEGORIES[(page * TAKE + index) % MOCK_CATEGORIES.length], // Adiciona categoria mockada
+        }));
+
+        setOngs((prev) => {
+
+          const combined = [...prev, ...mapped];
+          const uniqueMap = new Map();
+
+          combined.forEach(ong => {
+            uniqueMap.set(ong.id, ong);
+          });
+
+          return Array.from(uniqueMap.values());
         });
-
-        return Array.from(uniqueMap.values());
-      });
-    } catch (err) {
-      console.error("Erro ao buscar ONGs:", err);
+      } catch (err) {
+        console.error("Erro ao buscar ONGs:", err);
+      }
     }
-  }
 
-  loadOngs();
-}, [page]);
+    loadOngs();
+  }, [page]);
 
   const categories = [
     "Proteção Animal",
@@ -137,17 +137,17 @@ useEffect(() => {
   ];
 
   // ============ FILTROS ============
-  
+
   // Filtra ONGs baseado na pesquisa e categoria selecionada
   const filteredOngs = ongs.filter((ong) => {
     // Filtro de pesquisa por nome
-    const matchesSearch = query === "" || 
+    const matchesSearch = query === "" ||
       ong.name.toLowerCase().includes(query.toLowerCase());
-    
+
     // Filtro de categoria
-    const matchesCategory = selectedCategory === null || 
+    const matchesCategory = selectedCategory === null ||
       ong.category === selectedCategory;
-    
+
     return matchesSearch && matchesCategory;
   });
 
@@ -178,10 +178,10 @@ useEffect(() => {
       await api("/auth/logout", {
         method: "POST",
       });
-      
+
       // Limpa o cookie manualmente também
       document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      
+
       router.push("/login");
     } catch (error) {
       console.error("Erro ao fazer logout:", error);
@@ -202,14 +202,14 @@ useEffect(() => {
         <Image src="/logo_roxa.svg" alt="DoeCerto" width={120} height={120} priority />
 
         <div className="flex items-center gap-3 relative" ref={menuRef}>
-          <button 
+          <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="p-2 rounded-md hover:bg-gray-100 active:scale-95 transition"
           >
             <FiMenu size={20} />
           </button>
 
-          <div 
+          <div
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="w-9 h-9 rounded-full bg-gray-200 overflow-hidden cursor-pointer hover:ring-2 hover:ring-purple-500 transition"
           >
@@ -273,8 +273,8 @@ useEffect(() => {
                 key={i}
                 onClick={() => setSelectedCategory(isSelected ? null : c)}
                 className={`whitespace-nowrap px-4 py-2 rounded-full border text-base shadow-sm active:scale-95 transition ${isSelected
-                    ? "border-purple-700 bg-purple-100 text-purple-800"
-                    : "border-gray-200 bg-white text-gray-700"
+                  ? "border-purple-700 bg-purple-100 text-purple-800"
+                  : "border-gray-200 bg-white text-gray-700"
                   }`}
               >
                 {c}
@@ -311,7 +311,7 @@ useEffect(() => {
             filteredOngs.map((ong) => (
               <div
                 key={`carousel-${ong.id}`}
-                onClick={() => router.push(`/ong-public-profile/${ong.id}`)}
+                onClick={() => router.push(`/ong-public-profile?id=${ong.id}`)}
                 className="min-w-[220px] bg-white rounded-2xl shadow-md overflow-hidden cursor-pointer"
               >
                 <div className="w-full h-[170px] bg-gray-200">
@@ -320,7 +320,7 @@ useEffect(() => {
 
                 <div className="p-3">
                   <h3 className="text-sm font-semibold">{ong.name}</h3>
-                  
+
                   {/* Badge de categoria */}
                   <span className="inline-block mt-1 px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full">
                     {ong.category}
@@ -367,7 +367,7 @@ useEffect(() => {
           filteredOngs.map((ong) => (
             <div
               key={`list-${ong.id}`}
-              onClick={() => router.push(`/ong-public-profile/${ong.id}`)}
+              onClick={() => router.push(`/ong-public-profile?id=${ong.id}`)}
               className="flex items-center gap-4 bg-white rounded-2xl shadow-md p-4 cursor-pointer"
             >
               <div className="w-28 h-28 rounded-xl overflow-hidden">
