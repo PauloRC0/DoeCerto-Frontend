@@ -11,7 +11,7 @@ import {
   FaCheckCircle,
   FaChevronLeft,
 } from "react-icons/fa";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 
 const ONGS = [
   {
@@ -38,7 +38,8 @@ const ONGS = [
   },
 ];
 
-export default function PixPage() {
+// Componente que contém a lógica e o layout original
+function PixPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const id = Number(searchParams.get("id"));
@@ -51,45 +52,32 @@ export default function PixPage() {
   const [valor, setValor] = useState("20");
   const valoresRapidos = ["5", "10", "20", "50", "100"];
 
-  // FUNÇÃO DE CÓPIA COM FALLBACK PARA HTTP/IP LOCAL
   const copyKey = () => {
     const textToCopy = ONG.pixKey;
-
-    // 1. Tenta o método moderno (apenas funciona em HTTPS ou localhost)
     if (navigator.clipboard && window.isSecureContext) {
       navigator.clipboard.writeText(textToCopy)
         .then(() => {
           setCopied(true);
           setTimeout(() => setCopied(false), 2000);
         })
-        .catch(() => {
-          // Se falhar por algum motivo, tenta o fallback
-          executeFallbackCopy(textToCopy);
-        });
+        .catch(() => executeFallbackCopy(textToCopy));
     } else {
-      // 2. Fallback imediato para contextos inseguros (seu caso atual por IP)
       executeFallbackCopy(textToCopy);
     }
   };
 
-  // Método do "textarea invisível"
   const executeFallbackCopy = (text: string) => {
     try {
       const textArea = document.createElement("textarea");
       textArea.value = text;
-      
-      // Impede o scroll e esconde o elemento
       textArea.style.position = "fixed";
       textArea.style.left = "-9999px";
       textArea.style.top = "0";
       document.body.appendChild(textArea);
-      
       textArea.focus();
       textArea.select();
-      
       const successful = document.execCommand('copy');
       document.body.removeChild(textArea);
-      
       if (successful) {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
@@ -115,7 +103,6 @@ export default function PixPage() {
 
   return (
     <div className="min-h-screen bg-[#F8F9FD] text-[#3b1a66] pb-12 font-sans relative">
-      {/* BOTÃO VOLTAR */}
       <div className="pt-6 px-4 lg:absolute lg:top-8 lg:left-12 z-10">
         <button 
           onClick={() => router.back()} 
@@ -125,7 +112,6 @@ export default function PixPage() {
         </button>
       </div>
 
-      {/* TÍTULO */}
       <div className="w-full flex flex-col items-center pt-4 mb-6 lg:mb-10 lg:pt-8">
           <h1 className="text-lg lg:text-xl font-black text-[#4A1D96] uppercase tracking-widest">Doação em dinheiro</h1>
           <div className="h-1 w-8 bg-purple-600 rounded-full mt-2"></div>
@@ -133,10 +119,7 @@ export default function PixPage() {
 
       <main className="max-w-6xl mx-auto px-4 lg:px-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
-          
-          {/* COLUNA ESQUERDA */}
           <div className="flex flex-col gap-6">
-            {/* INFO ONG */}
             <div className="bg-white rounded-[1.5rem] lg:rounded-[2rem] p-5 lg:p-8 shadow-xl shadow-purple-100/50 border border-purple-50">
               <div className="flex items-center gap-3 lg:gap-4 mb-6 lg:mb-8">
                 <div className="bg-purple-600 p-3 lg:p-4 rounded-xl lg:rounded-2xl shadow-lg shadow-purple-200">
@@ -165,31 +148,28 @@ export default function PixPage() {
               </div>
             </div>
 
-            {/* QR CODE CARD */}
             <div className="bg-white rounded-[1.5rem] lg:rounded-[2rem] p-6 lg:p-8 shadow-xl shadow-purple-100/50 border border-purple-50 flex flex-col items-center justify-center">
-               <p className="font-black text-[#3b1a66] mb-4 uppercase text-[10px] lg:text-xs tracking-widest">Escaneie o QR Code</p>
-               <div className="bg-purple-50 p-4 lg:p-6 rounded-2xl lg:rounded-3xl border-2 border-purple-100 mb-6">
-                  <Image src={ONG.qrCode} alt="QR Code PIX" width={150} height={150} className="rounded-xl lg:w-[180px]" />
-               </div>
-               
-               <div className="w-full">
-                  <div className={`flex items-center justify-between bg-gray-50 p-3 lg:p-4 rounded-xl lg:rounded-2xl border-2 transition-all duration-300 ${copied ? 'border-green-500 bg-green-50' : 'border-transparent'}`}>
-                    <div className="flex items-center gap-2 lg:gap-3 min-w-0">
-                      <FaKey className={`flex-shrink-0 ${copied ? "text-green-600" : "text-purple-600"}`} />
-                      <span className="text-[11px] lg:text-sm font-bold truncate tracking-tight">{ONG.pixKey}</span>
-                    </div>
-                    <button onClick={copyKey} className="flex-shrink-0 ml-2 bg-white shadow-md p-2 lg:p-3 rounded-lg lg:rounded-xl hover:scale-110 active:scale-95 transition-all text-purple-600">
-                      {copied ? <FaCheckCircle className="text-green-600" /> : <FaCopy size={14} />}
-                    </button>
-                  </div>
-               </div>
+                <p className="font-black text-[#3b1a66] mb-4 uppercase text-[10px] lg:text-xs tracking-widest">Escaneie o QR Code</p>
+                <div className="bg-purple-50 p-4 lg:p-6 rounded-2xl lg:rounded-3xl border-2 border-purple-100 mb-6">
+                   <Image src={ONG.qrCode} alt="QR Code PIX" width={150} height={150} className="rounded-xl lg:w-[180px]" />
+                </div>
+                
+                <div className="w-full">
+                   <div className={`flex items-center justify-between bg-gray-50 p-3 lg:p-4 rounded-xl lg:rounded-2xl border-2 transition-all duration-300 ${copied ? 'border-green-500 bg-green-50' : 'border-transparent'}`}>
+                     <div className="flex items-center gap-2 lg:gap-3 min-w-0">
+                       <FaKey className={`flex-shrink-0 ${copied ? "text-green-600" : "text-purple-600"}`} />
+                       <span className="text-[11px] lg:text-sm font-bold truncate tracking-tight">{ONG.pixKey}</span>
+                     </div>
+                     <button onClick={copyKey} className="flex-shrink-0 ml-2 bg-white shadow-md p-2 lg:p-3 rounded-lg lg:rounded-xl hover:scale-110 active:scale-95 transition-all text-purple-600">
+                       {copied ? <FaCheckCircle className="text-green-600" /> : <FaCopy size={14} />}
+                     </button>
+                   </div>
+                </div>
             </div>
           </div>
 
-          {/* COLUNA DIREITA */}
           <div className="lg:h-full">
             <section className="bg-white rounded-[1.5rem] lg:rounded-[2rem] p-6 lg:p-8 shadow-xl shadow-purple-100/50 border border-purple-50 flex flex-col h-full lg:min-h-[620px]">
-              
               <div className="flex items-center gap-3 mb-6 lg:mb-8">
                 <div className="bg-green-100 p-2 rounded-lg">
                     <FaDollarSign className="text-green-600" />
@@ -226,7 +206,6 @@ export default function PixPage() {
 
               <div className="hidden lg:block lg:flex-grow"></div>
 
-              {/* Área do Comprovante */}
               <div className="space-y-4 lg:space-y-6 pt-6 lg:pt-8 border-t border-gray-100 mt-4 lg:mt-0">
                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 lg:mb-4">
                   📎 Comprovante do Pix
@@ -263,7 +242,6 @@ export default function PixPage() {
         </div>
       </main>
 
-      {/* POPUP SUCESSO */}
       {showPopup && (
         <div className="fixed inset-0 flex items-center justify-center z-[100] bg-[#3b1a66]/40 backdrop-blur-md px-4">
           <div className="bg-white rounded-[2rem] lg:rounded-[3rem] p-8 lg:p-10 w-full max-w-[380px] text-center shadow-2xl">
@@ -284,5 +262,14 @@ export default function PixPage() {
         </div>
       )}
     </div>
+  );
+}
+
+// Exportação padrão com Suspense para corrigir o erro de build
+export default function PixPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#F8F9FD] flex items-center justify-center text-purple-600 font-bold">Carregando...</div>}>
+      <PixPageContent />
+    </Suspense>
   );
 }
