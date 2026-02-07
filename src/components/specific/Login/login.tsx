@@ -6,12 +6,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import { login } from "@/services/login.service";
+import { Eye, EyeOff } from "lucide-react";
+import { Preferences } from "@capacitor/preferences";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isPending, setIsPending] = useState(false); 
+  const [isPending, setIsPending] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -21,17 +24,36 @@ export default function LoginPage() {
       return;
     }
 
-    setIsPending(true); 
+    setIsPending(true);
 
     try {
-      await login({ email, password });
-      toast.success("Login realizado com sucesso!");
-      setTimeout(() => {
-        router.push("/home");
-      }, 1500);
+      const response = await login({ email, password });
+      const data = response.data as any;
+      const token = data?.accessToken || data?.access_token || data?.token;
+
+      if (token) {
+        // Persistência Nativa para APK
+        await Preferences.set({
+          key: "access_token",
+          value: token,
+        });
+
+        // Persistência para Navegador
+        localStorage.setItem("access_token", token);
+        
+        toast.success("Login realizado com sucesso!");
+
+        setTimeout(() => {
+          router.push("/home");
+        }, 1500);
+      } else {
+        toast.error("Erro ao processar autenticação.");
+        setIsPending(false);
+      }
     } catch (err: any) {
+      console.error("Erro no login:", err);
       toast.error("Email ou senha inválidos");
-      setIsPending(false); 
+      setIsPending(false);
     }
   }
 
@@ -55,7 +77,7 @@ export default function LoginPage() {
             <input
               id="email"
               type="email"
-              required 
+              required
               placeholder="Digite seu email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -63,20 +85,33 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Campo Senha */}
+          {/* Campo Senha com Botão de Ver Senha */}
           <div className="flex flex-col mb-6">
             <label htmlFor="password" className="text-lg font-bold">Senha</label>
-            <input
-              id="password"
-              type="password"
-              required 
-              placeholder="Digite sua senha"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="bg-white p-2 rounded-md text-black text-xl placeholder:text-lg focus:outline-none"
-            />
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                required
+                placeholder="Digite sua senha"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-white p-2 pr-10 rounded-md text-black text-xl placeholder:text-lg focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#6B39A7] transition-colors"
+              >
+                
+                {showPassword ? <Eye size={24} /> : <EyeOff size={24} />}
+              </button>
+            </div>
             <div className="flex justify-end mt-1">
-              <Link href="/forgot-password" className="text-base font-bold text-white hover:underline">
+              <Link
+                href="/forgot-password"
+                className="text-base font-bold text-white hover:underline"
+              >
                 Esqueceu a senha?
               </Link>
             </div>
@@ -85,7 +120,7 @@ export default function LoginPage() {
           {/* Botão Principal com Loading */}
           <button
             type="submit"
-            disabled={isPending} 
+            disabled={isPending}
             className="w-full flex justify-center items-center text-2xl bg-white text-[#6B39A7] font-bold py-2 rounded-md active:scale-95 transition-transform mb-8 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isPending ? (

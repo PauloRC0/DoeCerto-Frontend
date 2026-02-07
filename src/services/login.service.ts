@@ -6,11 +6,14 @@ interface LoginDTO {
 }
 
 interface LoginResponse {
-  access_token: string;
+  accessToken?: string;
+  access_token?: string;
+  token?: string; 
 }
 
-export async function login(data: LoginDTO): Promise<void> {
-  const response = await api<LoginResponse>("/auth/login", {
+export async function login(data: LoginDTO) {
+  
+  return await api<LoginResponse>("/auth/login", {
     method: "POST",
     body: JSON.stringify(data),
   });
