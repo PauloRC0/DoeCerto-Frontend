@@ -1,11 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 
-export default function ResetPasswordPage() {
+
+function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -14,7 +15,6 @@ export default function ResetPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Verifica se o token existe ao carregar a página
   useEffect(() => {
     if (!token) {
       toast.error("Token inválido ou ausente. Solicite uma nova recuperação.");
@@ -36,7 +36,6 @@ export default function ResetPasswordPage() {
 
     setLoading(true);
     try {
-      // Chamada para o endpoint @Post('reset-password') do seu AuthService
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -54,7 +53,6 @@ export default function ResetPasswordPage() {
 
       toast.success("Senha atualizada com sucesso!", { duration: 4000 });
       
-      // Redireciona para o login após sucesso
       setTimeout(() => {
         router.push("/login");
       }, 3000);
@@ -116,5 +114,18 @@ export default function ResetPasswordPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[#6B39A7] text-white font-bold">
+        Carregando...
+      </div>
+    }>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }
