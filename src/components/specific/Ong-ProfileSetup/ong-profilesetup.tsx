@@ -2,18 +2,32 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Award, Plus, Trash2, Phone, Instagram, Tag, Wallet, Loader2, ArrowLeft } from "lucide-react";
+import {
+  MapPin,
+  Award,
+  Plus,
+  Trash2,
+  Phone,
+  Instagram,
+  Tag,
+  Wallet,
+  Loader2,
+  ArrowLeft
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { FormSection } from "@/components/ui/form-section";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { InputGroup } from "@/components/ui/input-group";
 import { ImageUploader } from "@/components/ui/image-uploader";
+
 import { OngProfileService } from "@/services/ongs-profile.service";
+import { OngSetupService } from "@/services/ongSetup.service";
 
 export default function OngSetupProfile() {
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [ongName, setOngName] = useState("Minha ONG");
   const [availableCategories, setAvailableCategories] = useState<any[]>([]);
 
@@ -24,8 +38,8 @@ export default function OngSetupProfile() {
   const [years, setYears] = useState("");
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
 
-  // Estados para arquivos e previews
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState("");
   const [bannerPreview, setBannerPreview] = useState("");
 
@@ -39,36 +53,45 @@ export default function OngSetupProfile() {
   useEffect(() => {
     async function loadInitialData() {
       try {
-        const categories = await OngProfileService.getCategories();
+        // 1. Carrega categorias do banco
+        const categories = await OngSetupService.getCategories();
         setAvailableCategories(categories || []);
 
+        // 2. Busca perfil atualizado (Usando o serviço que limpa as URLs)
         const profile = await OngProfileService.getMyProfile();
 
         if (profile) {
-          const name = profile.ong?.user?.name || profile.name || "Minha ONG";
-          setOngName(name);
-
-          setBio(profile.bio || "");
-          setAddress(profile.address || "");
+          setOngName(profile.name || "Minha ONG");
+          // Backend mapeia bio -> about
+          setBio(profile.about || "");
           setPhone(profile.contactNumber || "");
           setInstagram(profile.websiteUrl || "");
 
-          const formatUrl = (path: string) => {
-            if (!path) return "";
-            if (path.startsWith("http")) return path;
-            const cleanPath = path.replace(/\\/g, "/");
-            return `http://localhost:3000/${cleanPath}`;
-          };
+          // Tratamento de Endereço (Cidade - UF)
+          if (profile.address) {
+            const addr = typeof profile.address === 'object'
+              ? `${profile.address.city || ''}${profile.address.state ? ' - ' + profile.address.state : ''}`
+              : profile.address;
+            setAddress(addr);
+          }
 
-          if (profile.avatarUrl) setLogoPreview(formatUrl(profile.avatarUrl));
-          if (profile.bannerUrl) setBannerPreview(formatUrl(profile.bannerUrl));
+          // Anos de atuação baseado no createdAt
+          if (profile.createdAt) {
+            const diff = new Date().getFullYear() - new Date(profile.createdAt).getFullYear();
+            setYears(diff.toString());
+          }
+
+          if (profile.avatarUrl) setLogoPreview(profile.avatarUrl);
+          if (profile.bannerUrl) setBannerPreview(profile.bannerUrl);
 
           if (profile.categories) {
             setSelectedCategoryIds(profile.categories.map((c: any) => c.id));
           }
         }
       } catch (error) {
-        console.error("Erro ao carregar dados:", error);
+        console.error("Erro ao carregar dados iniciais:", error);
+      } finally {
+        setInitialLoading(false);
       }
     }
     loadInitialData();
@@ -79,8 +102,8 @@ export default function OngSetupProfile() {
     setLogoPreview(URL.createObjectURL(file));
   };
 
-  // HANDLER SIMPLIFICADO: Removemos o resize para garantir que a imagem tenha "sobra" para arrastar
   const handleBannerChange = (file: File) => {
+    setBannerFile(file);
     setBannerPreview(URL.createObjectURL(file));
   };
 
@@ -100,21 +123,39 @@ export default function OngSetupProfile() {
   const handleFinalize = async () => {
     setLoading(true);
     try {
-      await OngProfileService.upsertProfile({
-        bio,
+      // ETAPA 1: Dados textuais
+      await OngSetupService.updateProfileData({
+        about: bio,
         contactNumber: phone,
         address,
         websiteUrl: instagram,
         categoryIds: selectedCategoryIds,
-        logoFile: logoFile || undefined,
       });
+
+      // ETAPA 2: Imagens
+      if (logoFile || bannerFile) {
+        await OngSetupService.updateProfileImages(
+          logoFile || undefined,
+          bannerFile || undefined
+        );
+      }
+
       router.push("/ong-dashboard");
-    } catch (error) {
-      alert("Houve um erro ao salvar seu perfil.");
+    } catch (error: any) {
+      console.error(error);
+      alert(error.message || "Houve um erro ao salvar seu perfil.");
     } finally {
       setLoading(false);
     }
   };
+
+  if (initialLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader2 className="animate-spin text-[#4a1d7a]" size={40} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white text-gray-900 pb-32">
@@ -179,8 +220,20 @@ export default function OngSetupProfile() {
           <FormSection title="Canais de Contato e Local" italicTitle>
             <div className="space-y-3 sm:space-y-4">
               <InputGroup icon={Phone} placeholder="WhatsApp" value={phone} onChange={(e) => setPhone(e.target.value)} />
-              <InputGroup icon={Instagram} placeholder="@instagram" iconColor="text-pink-400" value={instagram} onChange={(e) => setInstagram(e.target.value)} />
-              <InputGroup icon={MapPin} placeholder="Cidade - UF" iconColor="text-blue-400" value={address} onChange={(e) => setAddress(e.target.value)} />
+              <InputGroup
+                icon={Instagram}
+                placeholder="Link do Instagram ou Site"
+                iconColor="text-pink-400"
+                value={instagram}
+                onChange={(e) => setInstagram(e.target.value)}
+              />
+              <InputGroup
+                icon={MapPin}
+                placeholder="Cidade - UF"
+                iconColor="text-blue-400"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+              />
             </div>
           </FormSection>
 
@@ -223,6 +276,7 @@ export default function OngSetupProfile() {
                 className="w-full bg-gray-50 p-3 rounded-xl outline-none text-sm min-w-0 border-none focus:ring-1 focus:ring-purple-100"
               />
               <button
+                type="button"
                 onClick={handleAddItems}
                 className="aspect-square bg-[#4a1d7a] text-white flex items-center justify-center rounded-xl active:scale-95 transition-transform"
               >
@@ -233,7 +287,11 @@ export default function OngSetupProfile() {
               {items.map((item, i) => (
                 <span key={i} className="flex items-center gap-2 bg-purple-50 text-[#4a1d7a] px-3 py-1.5 rounded-full text-[11px] font-black border border-purple-100">
                   {item}
-                  <Trash2 size={12} className="cursor-pointer text-red-400" onClick={() => setItems(items.filter((_, idx) => idx !== i))} />
+                  <Trash2
+                    size={12}
+                    className="cursor-pointer text-red-400"
+                    onClick={() => setItems(items.filter((_, idx) => idx !== i))}
+                  />
                 </span>
               ))}
             </div>
