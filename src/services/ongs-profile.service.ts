@@ -2,41 +2,64 @@ import { api } from './api';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export const OngProfileService = {
-  /**
-   * Corrige caminhos do Windows (\\) para URLs (/) e anexa a URL base.
-   */
-  formatImageUrl(path: string | null) {
-    if (!path) return null;
+export const OngsProfileService = {
+  _formatImageUrl(path: string | null) {
+    if (!path) return "";
     if (path.startsWith('http')) return path;
-    
     const cleanPath = path.replace(/\\/g, "/");
-    const finalPath = cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`;
+    return `${API_URL}${cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`}`;
+  },
+
+  _calculateYears(createdAt: string | Date) {
+    const yearCreated = new Date(createdAt).getFullYear();
+    const diff = new Date().getFullYear() - yearCreated;
+    return diff <= 0 ? "Novo" : `${diff} ${diff === 1 ? 'ano' : 'anos'}`;
+  },
+
+  async getPublicProfile(ongId: number) {
+    const [resProfile, resReviews] = await Promise.all([
+      api<any>(`/ongs/${ongId}/profile`),
+      api<any>(`/ongs/${ongId}/ratings`)
+    ]);
+
+    const source = resProfile.data?.ong || resProfile.data;
     
-    return `${API_URL}${finalPath}`;
+    return {
+      id: source.id || ongId,
+      name: source.name || "ONG sem nome",
+      banner: this._formatImageUrl(source.bannerUrl || source.banner),
+      logo: this._formatImageUrl(source.avatarUrl || source.logo),
+      description: source.about || source.bio || "ONG verificada.",
+      phone: source.contactNumber || source.phone || "Não informado",
+      instagram: source.websiteUrl || source.instagram || "Não informado",
+      address: source.address || "Endereço não informado",
+      distance: "—",
+      years: this._calculateYears(source.createdAt || new Date()),
+      numberOfRatings: source.numberOfRatings || source.rating?.count || 0,
+      rating: Number(source.averageRating || source.rating?.average) || 0,
+      donations: source.receivedDonations || 0,
+      reviews: resReviews.data || []
+    };
   },
 
   /**
-   * Busca o perfil e prepara os dados para o layout do Dashboard.
+   * ADICIONADO: Envia a avaliação para a API
    */
-  async getMyProfile() {
-    // Chamada direta da função api conforme seu tipo T
-    const { data } = await api<any>('/ongs/me/profile');
-    
-    // Cálculo de tempo de plataforma
-    const yearCreated = data.createdAt ? new Date(data.createdAt).getFullYear() : new Date().getFullYear();
-    const currentYear = new Date().getFullYear();
-    const diff = currentYear - yearCreated;
+  async postReview(ongId: number, score: number, comment: string) {
+    return api(`/ongs/${ongId}/ratings`, {
+      method: "POST",
+      body: JSON.stringify({ score, comment }),
+    });
+  },
 
+  async getMyProfile() {
+    const { data } = await api<any>('/ongs/me/profile');
     return {
       ...data,
       name: data.name || "ONG sem nome",
-      initial: (data.name || "O").charAt(0).toUpperCase(),
-      avatarUrl: this.formatImageUrl(data.avatarUrl),
-      bannerUrl: this.formatImageUrl(data.bannerUrl),
-      // 'about' já vem mapeado corretamente do seu backend revisado
-      about: data.about || "Nenhuma descrição disponível.",
-      displayYears: diff <= 0 ? "Novo na plataforma" : `${diff} ${diff === 1 ? 'ano' : 'anos'}`,
+      avatarUrl: this._formatImageUrl(data.avatarUrl),
+      bannerUrl: this._formatImageUrl(data.bannerUrl),
+      displayYears: this._calculateYears(data.createdAt || new Date()),
       stats: {
         donations: data.receivedDonations || 0,
         ratingAverage: Number(data.rating?.average) || 0,
