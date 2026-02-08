@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 
 export interface DonationData {
   tipoItem: string;
@@ -23,6 +25,7 @@ export default function Donation({
   const [quantidade, setQuantidade] = useState<number | "">("");
   const [endereco, setEndereco] = useState("");
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleSubmit = async (ev: React.FormEvent) => {
     ev.preventDefault();
@@ -58,6 +61,12 @@ export default function Donation({
 
   return (
     <div className="w-full max-w-md mx-auto">
+       <button
+          onClick={() => router.back()}
+          className="absolute top-4 left-4 bg-white/90 p-2 rounded-full z-30 shadow-md text-gray-900 hover:bg-white transition-colors"
+        >
+          <ArrowLeft size={20} />
+        </button>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-purple-700 mt-4">{`Doar Itens — ${ongName}`}</h1>
         <p className="text-sm text-gray-600 mt-1">
@@ -106,13 +115,13 @@ export default function Donation({
 
         {/* Endereço */}
         <div className="flex flex-col gap-1">
-          <label className="font-semibold text-gray-700">Ponto de Entrega</label>
+          <label className="font-semibold text-gray-700">Descrição</label>
           <input
             type="text"
             value={endereco}
             onChange={(e) => setEndereco(e.target.value)}
             required
-            placeholder="Ex: Rua das Flores, 123"
+            placeholder="Ex: Esse item está em bom estado, usado apenas 2 vezes."
             className="p-3 rounded-xl border border-gray-300 text-gray-700 focus:border-purple-600 focus:ring-2 focus:ring-purple-100 outline-none"
           />
         </div>

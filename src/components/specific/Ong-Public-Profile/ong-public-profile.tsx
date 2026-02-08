@@ -31,7 +31,7 @@ interface OngProfileData {
   years: number;
   numberOfRatings: number; 
   rating: number;         
-  donations: number; // Campo adicionado para controle local
+  donations: number;
 }
 
 type Props = {
@@ -56,24 +56,23 @@ export default function OngPublicProfile({ ongId }: Props) {
         const res = await api<any>(`/ongs/${ongId}/profile`);
         const data = res.data;
 
-        if (!data || !data.ong) {
-          throw new Error("Resposta inválida da API");
-        }
+        // CONSERTO DO ERRO DE BUSCA (Extrai da chave .ong ou da raiz)
+        const source = data?.ong ? data.ong : data;
 
-        if (isMounted) {
+        if (isMounted && source) {
           setOng({
-            id: data.ong.userId,
-            name: data.ong.user?.name || "ONG sem nome",
-            banner: data.avatarUrl || "", 
-            logo: data.avatarUrl || "",
-            description: data.bio || "ONG verificada na plataforma.",
-            phone: data.contactNumber || "Não informado",
-            instagram: data.websiteUrl || "Não informado",
-            address: data.address || "Endereço não informado",
+            id: source.userId || source.id || ongId,
+            name: source.user?.name || source.name || "ONG sem nome",
+            banner: data.avatarUrl || source.avatarUrl || "", 
+            logo: data.avatarUrl || source.avatarUrl || "",
+            description: data.bio || source.bio || "ONG verificada na plataforma.",
+            phone: data.contactNumber || source.contactNumber || "Não informado",
+            instagram: data.websiteUrl || source.websiteUrl || "Não informado",
+            address: data.address || source.address || "Endereço não informado",
             distance: "—",
             years: data.since ? new Date().getFullYear() - Number(data.since) : 0,
-            numberOfRatings: data.ong.numberOfRatings || 0,
-            rating: data.ong.averageRating || 0,
+            numberOfRatings: source.numberOfRatings || 0,
+            rating: Number(source.averageRating || source.rating) || 0,
             donations: 0, 
           });
         }
@@ -99,7 +98,7 @@ export default function OngPublicProfile({ ongId }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 pb-28">
+    <div className="min-h-screen bg-white text-gray-900 pb-36">
       {/* Banner */}
       <div className="relative w-full h-[220px] xs:h-[260px] sm:h-[340px] bg-gray-200">
         {ong.banner && !bannerError ? (
@@ -210,10 +209,11 @@ export default function OngPublicProfile({ ongId }: Props) {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 px-4 pb-4 pt-2 bg-gradient-to-t from-white via-white to-transparent z-[60]">
+      {/* AJUSTE NO BOTÃO: FIXO, FLUTUANTE E SEM INTERFERÊNCIA */}
+      <div className="fixed bottom-6 left-6 right-6 z-[9999]">
         <button
           onClick={() => setIsModalOpen(true)}
-          className="w-full py-3.5 xs:py-4 rounded-xl text-base xs:text-lg font-black text-white bg-gradient-to-r from-pink-500 to-purple-600 shadow-lg active:scale-95 transition-transform"
+          className="w-full py-4 rounded-2xl text-base xs:text-lg font-black text-white bg-gradient-to-r from-pink-500 to-purple-600 shadow-2xl active:scale-95 transition-transform border-none outline-none appearance-none"
         >
           Doar para esta ONG
         </button>

@@ -9,8 +9,8 @@ import {
   FaIdCard,
   FaDollarSign,
   FaCheckCircle,
-  FaChevronLeft,
 } from "react-icons/fa";
+import { ArrowLeft } from "lucide-react";
 import { useState, Suspense } from "react";
 
 const ONGS = [
@@ -104,12 +104,12 @@ function PixPageContent() {
   return (
     <div className="min-h-screen bg-[#F8F9FD] text-[#3b1a66] pb-12 font-sans relative">
       <div className="pt-6 px-4 lg:absolute lg:top-8 lg:left-12 z-10">
-        <button 
-          onClick={() => router.back()} 
-          className="flex items-center gap-2 text-purple-700 font-bold hover:bg-purple-50 px-3 py-2 rounded-xl transition-all text-sm"
-        >
-          <FaChevronLeft /> Voltar
-        </button>
+        <button
+                  onClick={() => router.back()}
+                  className="absolute top-4 left-4 bg-white/90 p-2 rounded-full z-30 shadow-md text-gray-900 hover:bg-white transition-colors"
+                >
+                  <ArrowLeft size={20} />
+                </button>
       </div>
 
       <div className="w-full flex flex-col items-center pt-4 mb-6 lg:mb-10 lg:pt-8">
