@@ -65,7 +65,7 @@ export default function HomePage() {
   const [ongs, setOngs] = useState<Ong[]>([]);
   const [page, setPage] = useState(0);
 
-  // Carrega avatar do localStorage
+  // Carrega avatar e role do localStorage
   useEffect(() => {
     const savedAvatar = localStorage.getItem('userAvatar');
     if (savedAvatar) {
@@ -92,7 +92,7 @@ export default function HomePage() {
 
   // ---------------- ONG DO BANCO (COM PAGINAÇÃO) ----------------
 
-useEffect(() => {
+  useEffect(() => {
     async function loadOngs() {
       try {
         const res = await api<any>(`/catalog?offset=${page * TAKE}&limit=${TAKE}`);
@@ -182,6 +182,7 @@ useEffect(() => {
 
       // Limpa o cookie manualmente também
       document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      localStorage.clear();
 
       router.push("/login");
     } catch (error) {
@@ -192,7 +193,15 @@ useEffect(() => {
   }
 
   function goToProfile() {
-    router.push("/dashboard");
+    const userRole = localStorage.getItem("userRole") || "";
+
+    // Verifica se é ONG (independente de maiúsculas/minúsculas)
+    if (userRole.toUpperCase() === "ONG") {
+      router.push("/ong-dashboard");
+    } else {
+      router.push("/dashboard");
+    }
+
     setIsMenuOpen(false);
   }
 
