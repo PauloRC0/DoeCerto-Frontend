@@ -30,29 +30,38 @@ export default function LoginPage() {
       const response = await login({ email, password });
       const data = response.data as any;
       const token = data?.accessToken || data?.access_token || data?.token;
+      
+      // 1. Captura o cargo e avatar vindos da API
+      const apiUserRole = data?.user?.role || data?.role; 
+      const userAvatar = data?.user?.avatarUrl || data?.avatarUrl;
 
       if (token) {
-        // Persistência Nativa para APK
-        await Preferences.set({
-          key: "access_token",
-          value: token,
-        });
+        // Persistência Nativa para APK (Capacitor)
+        await Preferences.set({ key: "access_token", value: token });
+        if (apiUserRole) await Preferences.set({ key: "userRole", value: apiUserRole });
 
         // Persistência para Navegador
         localStorage.setItem("access_token", token);
+        if (apiUserRole) localStorage.setItem("userRole", apiUserRole);
+        if (userAvatar) localStorage.setItem("userAvatar", userAvatar);
         
         toast.success("Login realizado com sucesso!");
 
-        // Decodificar o token para obter a role
-        let userRole = null;
-        try {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          userRole = payload.role;
-        } catch (e) {
-          console.error("Erro ao decodificar token:", e);
+        // 2. Lógica de Redirecionamento
+        // Se a API não mandou o role, tentamos extrair do token como backup
+        let finalRole = apiUserRole;
+
+        if (!finalRole) {
+          try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            finalRole = payload.role;
+          } catch (e) {
+            console.error("Erro ao decodificar token:", e);
+          }
         }
 
-        const redirectPath = userRole === 'admin' ? '/adm-dashboard' : '/home';
+        // Define a rota baseada no cargo (Admin vs Outros)
+        const redirectPath = finalRole?.toLowerCase() === 'admin' ? '/adm-dashboard' : '/home';
 
         setTimeout(() => {
           router.push(redirectPath);
@@ -82,7 +91,6 @@ export default function LoginPage() {
         </h1>
 
         <form onSubmit={handleSubmit} className="w-full flex flex-col">
-          {/* Campo Email */}
           <div className="flex flex-col mb-4">
             <label htmlFor="email" className="text-lg font-bold">Email</label>
             <input
@@ -96,7 +104,6 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Campo Senha com Botão de Ver Senha */}
           <div className="flex flex-col mb-6">
             <label htmlFor="password" className="text-lg font-bold">Senha</label>
             <div className="relative">
@@ -114,7 +121,6 @@ export default function LoginPage() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#6B39A7] transition-colors"
               >
-                
                 {showPassword ? <Eye size={24} /> : <EyeOff size={24} />}
               </button>
             </div>
@@ -128,7 +134,6 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Botão Principal com Loading */}
           <button
             type="submit"
             disabled={isPending}
@@ -141,7 +146,6 @@ export default function LoginPage() {
             )}
           </button>
 
-          {/* Botão de cadastro */}
           <div className="flex flex-wrap justify-center gap-x-1 text-center text-lg font-bold text-purple-100">
             <span>Ainda não possui conta?</span>
             <Link href="/register-choice" className="text-white font-black hover:underline">
