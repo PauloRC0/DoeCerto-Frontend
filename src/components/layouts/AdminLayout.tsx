@@ -12,6 +12,9 @@ import {
   LogOut
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { Preferences } from '@capacitor/preferences';
+import { logout } from '@/services/login.service';
+import toast from 'react-hot-toast';
 import MetricsPanel from '../specific/Adm-Dashboard/dashboard-metrics/MetricsPanel';
 
 type AdminLayoutProps = {
@@ -30,9 +33,22 @@ export default function AdminLayout({ children, activeMenu: initialActiveMenu = 
     onMenuChange?.(menu);
   };
 
-  const handleLogout = () => {
-    
-    router.push('/login');
+  const handleLogout = async () => {
+    try {
+      await logout();
+      // Clear native storage
+      await Preferences.remove({ key: 'access_token' });
+      // Clear browser storage
+      localStorage.removeItem('access_token');
+      toast.success('Logout realizado com sucesso!');
+      router.push('/login');
+    } catch (error) {
+      console.error('Erro no logout:', error);
+      // Even if API fails, clear local storage and redirect
+      await Preferences.remove({ key: 'access_token' });
+      localStorage.removeItem('access_token');
+      router.push('/login');
+    }
   };
 
   return (

@@ -99,13 +99,13 @@ export default function HomePage() {
 
         const sections = res.data;
         if (!sections || sections.length === 0) return;
-        const allOngsFromApi = sections.flatMap((section: any) => section.data);
+        const allOngsFromApi = sections.flatMap((section: any) => section.items);
         const mapped: Ong[] = allOngsFromApi.map((ong: any, index: number) => ({
-          id: ong.userId,
+          id: ong.id,
           name: ong.name,
-          img: PLACEHOLDER_IMAGES[(page * TAKE + index) % PLACEHOLDER_IMAGES.length],
+          img: ong.avatarUrl || PLACEHOLDER_IMAGES[(page * TAKE + index) % PLACEHOLDER_IMAGES.length],
           distance: "7.2 km",
-          category: MOCK_CATEGORIES[(page * TAKE + index) % MOCK_CATEGORIES.length], // Adiciona categoria mockada
+          category: ong.categories && ong.categories.length > 0 ? ong.categories[0].name : "Geral", // Usa a primeira categoria
         }));
 
         setOngs((prev) => {

@@ -22,3 +22,9 @@ export async function login(data: LoginDTO) {
     body: JSON.stringify(data),
   });
 }
+
+export async function logout() {
+  return await api("/auth/logout", {
+    method: "POST",
+  });
+}
