@@ -1,82 +1,46 @@
 import { api } from './api';
 
-export interface Category {
-  id: number;
-  name: string;
-}
-
-export interface OngProfileData {
-  bio?: string;
-  contactNumber?: string;
-  address?: string;
-  websiteUrl?: string;
-  categoryIds?: number[];
-  logoFile?: File;
-}
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const OngProfileService = {
   /**
-   * Busca o perfil completo da ONG logada.
-   * Rota: GET /ongs/me/profile
+   * Corrige caminhos do Windows (\\) para URLs (/) e anexa a URL base.
    */
-async getMyProfile() {
-  // Remova qualquer tentativa de passar parâmetros aqui
-  const { data } = await api<any>('/ongs/me/profile'); 
-  return data;
-},
-
-  /**
-   * Lista todas as categorias disponíveis para seleção no formulário.
-   * Rota: GET /categories
-   */
-  async getCategories() {
-    const { data } = await api<any>('/categories?take=100');
-    // Ajusta o retorno baseado na estrutura comum do NestJS/Prisma (paginada ou array simples)
-    return data?.data || data || [];
+  formatImageUrl(path: string | null) {
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    
+    const cleanPath = path.replace(/\\/g, "/");
+    const finalPath = cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`;
+    
+    return `${API_URL}${finalPath}`;
   },
 
   /**
-   * Salva os dados do perfil e a imagem separadamente.
-   * O backend espera JSON para dados e FormData para arquivos.
+   * Busca o perfil e prepara os dados para o layout do Dashboard.
    */
+  async getMyProfile() {
+    // Chamada direta da função api conforme seu tipo T
+    const { data } = await api<any>('/ongs/me/profile');
+    
+    // Cálculo de tempo de plataforma
+    const yearCreated = data.createdAt ? new Date(data.createdAt).getFullYear() : new Date().getFullYear();
+    const currentYear = new Date().getFullYear();
+    const diff = currentYear - yearCreated;
 
-  // ... getMyProfile e getCategories permanecem iguais
-
-async upsertProfile(data: OngProfileData) {
-    // Tratamento do Instagram:
-    // Se a ONG digitou "sos_gatinhos" ou "@sos_gatinhos", 
-    // transformamos no link completo exigido pelo backend.
-    let finalUrl = "";
-    if (data.websiteUrl) {
-      const handle = data.websiteUrl.replace('@', '').trim();
-      if (handle) {
-        finalUrl = `https://www.instagram.com/${handle}`;
+    return {
+      ...data,
+      name: data.name || "ONG sem nome",
+      initial: (data.name || "O").charAt(0).toUpperCase(),
+      avatarUrl: this.formatImageUrl(data.avatarUrl),
+      bannerUrl: this.formatImageUrl(data.bannerUrl),
+      // 'about' já vem mapeado corretamente do seu backend revisado
+      about: data.about || "Nenhuma descrição disponível.",
+      displayYears: diff <= 0 ? "Novo na plataforma" : `${diff} ${diff === 1 ? 'ano' : 'anos'}`,
+      stats: {
+        donations: data.receivedDonations || 0,
+        ratingAverage: Number(data.rating?.average) || 0,
       }
-    }
-
-    const payload = {
-      bio: data.bio || '',
-      contactNumber: data.contactNumber || '',
-      address: data.address || '',
-      websiteUrl: finalUrl, // Agora é uma URL válida para o backend
-      categoryIds: (data.categoryIds || []).map(id => Number(id)),
     };
-
-    // 1. Envio dos dados JSON
-    await api('/ongs/me/profile', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-
-    // 2. Upload da imagem se houver arquivo
-    if (data.logoFile) {
-      const formData = new FormData();
-      formData.append('file', data.logoFile);
-
-      return api('/ongs/me/profile', {
-        method: 'POST',
-        body: formData,
-      });
-    }
   }
 };
