@@ -24,6 +24,8 @@ export async function api<T>(
     }
   }
 
+  console.log('Token found:', token ? 'Yes' : 'No');
+
   if (token) {
     headers.set("Authorization", `Bearer ${token}`);
   }
