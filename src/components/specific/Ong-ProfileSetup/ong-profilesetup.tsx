@@ -20,7 +20,7 @@ import { CustomSelect } from "@/components/ui/custom-select";
 import { InputGroup } from "@/components/ui/input-group";
 import { ImageUploader } from "@/components/ui/image-uploader";
 
-import { OngProfileService } from "@/services/ongs-profile.service";
+import { OngsProfileService } from "@/services/ongs-profile.service";
 import { OngSetupService } from "@/services/ongSetup.service";
 
 export default function OngSetupProfile() {
@@ -58,7 +58,7 @@ export default function OngSetupProfile() {
         setAvailableCategories(categories || []);
 
         // 2. Busca perfil atualizado (Usando o serviço que limpa as URLs)
-        const profile = await OngProfileService.getMyProfile();
+        const profile = await OngsProfileService.getMyProfile();
 
         if (profile) {
           setOngName(profile.name || "Minha ONG");
