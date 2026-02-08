@@ -9,6 +9,7 @@ export interface CategoryData {
 export interface MetricItem {
   id: number;
   name: string;
+  email?: string;
   value: number;
   category?: string;
 }
@@ -32,10 +33,6 @@ export interface MetricsData {
   categoriesStats: CategoryStats[];
   generalStats: GeneralStats;
 }
-
-// --- Configuração de Mock ---
-// Mude para 'false' quando a API estiver pronta
-const USE_MOCK = true;
 
 // --- Serviços de Categorias ---
 
@@ -71,79 +68,32 @@ export async function deleteCategory(id: number): Promise<void> {
 
 export async function getMetrics(): Promise<MetricsData> {
   try {
-    if (USE_MOCK) return getMockedMetrics();
-
-    const { data } = await api<any>('/admin/metrics');
+    const { data } = await api<MetricsData>('/metrics');
     
     return {
-      topOngsByDonationCount: normalizeMetrics(data.topOngsByDonationCount),
-      topDonorsByFrequency: normalizeMetrics(data.topDonorsByFrequency),
-      topPositiveRatings: normalizeMetrics(data.topPositiveRatings),
-      topNegativeRatings: normalizeMetrics(data.topNegativeRatings),
-      categoriesStats: normalizeCategoryStats(data.categoriesStats || []),
-      generalStats: {
-        totalOngs: data.generalStats?.totalOngs || 0,
-        totalDonors: data.generalStats?.totalDonors || 0,
+      topOngsByDonationCount: data.topOngsByDonationCount || [],
+      topDonorsByFrequency: data.topDonorsByFrequency || [],
+      topPositiveRatings: data.topPositiveRatings || [],
+      topNegativeRatings: data.topNegativeRatings || [],
+      categoriesStats: data.categoriesStats || [],
+      generalStats: data.generalStats || {
+        totalOngs: 0,
+        totalDonors: 0,
       }
     };
   } catch (error) {
     console.error('Erro ao carregar métricas:', error);
-    return getMockedMetrics();
+    // Retorna estrutura vazia em caso de erro
+    return {
+      topOngsByDonationCount: [],
+      topDonorsByFrequency: [],
+      topPositiveRatings: [],
+      topNegativeRatings: [],
+      categoriesStats: [],
+      generalStats: {
+        totalOngs: 0,
+        totalDonors: 0,
+      }
+    };
   }
-}
-
-// --- Funções Auxiliares ---
-
-function normalizeMetrics(rawData: any[] = []): MetricItem[] {
-  return rawData.map((item: any) => ({
-    id: item.id || Math.random(),
-    name: item.name || 'Não informado',
-    value: item.value || item.count || 0,
-    category: item.category || '',
-  }));
-}
-
-function normalizeCategoryStats(rawData: any[]): CategoryStats[] {
-  const stats = rawData.map((item: any) => ({
-    name: item.name || 'Sem categoria',
-    count: item.count || 0,
-    percentage: item.percentage || 0,
-  }));
-
-  const total = stats.reduce((sum, stat) => sum + stat.count, 0);
-  return stats.map(stat => ({
-    ...stat,
-    percentage: total > 0 ? Math.round((stat.count / total) * 100) : 0,
-  }));
-}
-
-function getMockedMetrics(): MetricsData {
-  return {
-    topOngsByDonationCount: [
-      { id: 1, name: 'ONG Vida Animal', value: 154, category: 'Pets' },
-      { id: 2, name: 'Educação para Todos', value: 120, category: 'Educação' },
-      { id: 3, name: 'EcoMundo', value: 89, category: 'Meio Ambiente' },
-    ],
-    topDonorsByFrequency: [
-      { id: 1, name: 'Carlos Silva', value: 42 },
-      { id: 2, name: 'Ana Oliveira', value: 38 },
-      { id: 3, name: 'Marcos Souza', value: 25 },
-    ],
-    topPositiveRatings: [
-      { id: 1, name: 'ONG Vida Animal', value: 5.0, category: 'Pets' },
-      { id: 2, name: 'Educação para Todos', value: 4.8, category: 'Educação' },
-    ],
-    topNegativeRatings: [
-      { id: 10, name: 'ONG Teste Errado', value: 1.5, category: 'Geral' },
-    ],
-    categoriesStats: [
-      { name: 'Educação', count: 10, percentage: 50 },
-      { name: 'Saúde', count: 5, percentage: 25 },
-      { name: 'Pets', count: 5, percentage: 25 },
-    ],
-    generalStats: {
-      totalOngs: 20,
-      totalDonors: 450,
-    }
-  };
 }

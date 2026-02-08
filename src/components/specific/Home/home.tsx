@@ -105,7 +105,7 @@ useEffect(() => {
         const mapped: Ong[] = allOngsFromApi.map((ong: any, index: number) => ({
           id: ong.id,
           name: ong.name,
-          img: PLACEHOLDER_IMAGES[(page * TAKE + index) % PLACEHOLDER_IMAGES.length],
+          img: ong.avatarUrl || PLACEHOLDER_IMAGES[(page * TAKE + index) % PLACEHOLDER_IMAGES.length],
           distance: "7.2 km",
           category: ong.categories?.[0]?.name || MOCK_CATEGORIES[(page * TAKE + index) % MOCK_CATEGORIES.length],
         }));
