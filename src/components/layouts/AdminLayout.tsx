@@ -12,18 +12,26 @@ import {
   LogOut
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import MetricsPanel from '../specific/Adm-Dashboard/dashboard-metrics/MetricsPanel';
 
 type AdminLayoutProps = {
   children: React.ReactNode;
-  activeMenu?: 'home' | 'dashboard' | 'messages' | 'settings';
+  activeMenu?: 'home' | 'dashboard';
   adminName?: string;
+  onMenuChange?: (menu: 'home' | 'dashboard') => void;
 };
 
-export default function AdminLayout({ children, activeMenu = 'home', adminName = 'Administrador' }: AdminLayoutProps) {
+export default function AdminLayout({ children, activeMenu: initialActiveMenu = 'home', adminName = 'Administrador', onMenuChange }: AdminLayoutProps) {
   const router = useRouter();
+  const [activeMenu, setActiveMenu] = useState<'home' | 'dashboard'>(initialActiveMenu);
+
+  const handleMenuChange = (menu: 'home' | 'dashboard' ) => {
+    setActiveMenu(menu);
+    onMenuChange?.(menu);
+  };
 
   const handleLogout = () => {
-    // Implementar logout
+    
     router.push('/login');
   };
 
@@ -42,17 +50,18 @@ export default function AdminLayout({ children, activeMenu = 'home', adminName =
             <SidebarLink 
               icon={<Home size={22} />} 
               label="Home" 
-              active={activeMenu === 'home'} 
+              active={activeMenu === 'home'}
+              onClick={() => handleMenuChange('home')}
             />
             <SidebarLink 
               icon={<LayoutDashboard size={22} />} 
               label="Dashboard" 
               active={activeMenu === 'dashboard'}
+              onClick={() => handleMenuChange('dashboard')}
             />
             <SidebarLink 
               icon={<MessageSquare size={22} />} 
               label="Message" 
-              active={activeMenu === 'messages'}
             />
           </nav>
         </div>
@@ -61,7 +70,6 @@ export default function AdminLayout({ children, activeMenu = 'home', adminName =
           <SidebarLink 
             icon={<Settings size={22} />} 
             label="settings" 
-            active={activeMenu === 'settings'}
           />
           <button 
             onClick={handleLogout}
@@ -113,28 +121,28 @@ export default function AdminLayout({ children, activeMenu = 'home', adminName =
 
         {/* Conteúdo */}
         <div className="flex-1 overflow-y-auto">
-          {children}
+          {activeMenu === 'home' ? children : <MetricsPanel />}
         </div>
       </main>
     </div>
   );
 }
 
-function SidebarLink({ icon, label, active = false }: any) {
+function SidebarLink({ icon, label, active = false, onClick }: { icon: React.ReactNode; label: string; active?: boolean; onClick?: () => void }) {
   return (
-    <div className={`
-      flex items-center gap-4 px-5 py-3.5 cursor-pointer transition-all rounded-xl relative group
+    <button onClick={onClick} className={`
+      w-full flex items-center gap-4 px-5 py-3.5 cursor-pointer transition-all rounded-xl relative group
       ${active
         ? 'bg-white/10 text-white font-bold'
         : 'text-white/60 hover:bg-white/5 hover:text-white'}
     `}>
       {active && (
-        <div className="absolute left-0 w-1.5 h-6 bg-[#FFF15F] rounded-r-full" />
+        <div className="absolute left-0 w-1.5 h-6 bg-[#FFF15F] rounded-r-full transition-all duration-300" />
       )}
       <span className="transition-transform group-hover:scale-105 duration-200">
         {icon}
       </span>
       <span className="text-lg capitalize tracking-tight">{label}</span>
-    </div>
+    </button>
   );
 }

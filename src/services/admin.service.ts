@@ -1,7 +1,6 @@
 import { api } from "./api";
 
 // --- Tipos ---
-
 export type OngStatus = 'pending' | 'approved' | 'rejected';
 
 export interface OngAdminData {
@@ -23,7 +22,6 @@ interface ApiResponse {
 }
 
 // --- Normalização Simplificada ---
-
 function normalizeOng(raw: any, status: OngStatus): OngAdminData {
   // Garante que dados aninhados (ex: raw.ong) subam para o nível principal
   const data = { ...raw, ...(raw.ong || {}), ...(raw.user || {}) };
@@ -43,13 +41,13 @@ function normalizeOng(raw: any, status: OngStatus): OngAdminData {
 }
 
 // --- Serviços de Leitura ---
-
 export async function getOngsByStatus(status: OngStatus, skip = 0, limit = 10) {
   // Ajuste: O front usa 'approved', mas a rota da API é 'verified'
   const apiStatus = status === 'approved' ? 'verified' : status;
   
+  // ✅ CORREÇÃO APLICADA: parênteses ao redor do template literal
   const res = await api<any>(`/ongs/status/${apiStatus}?skip=${skip}&limit=${limit}`);
-  
+
   // Suporta retorno direto de array ou objeto com { data, total }
   const rawList = Array.isArray(res.data) ? res.data : (res.data?.data || []);
   const total = res.data?.total ?? rawList.length;
@@ -63,8 +61,9 @@ export async function getOngsByStatus(status: OngStatus, skip = 0, limit = 10) {
 export async function searchOngs(searchTerm: string, status: OngStatus) {
   const apiStatus = status === 'approved' ? 'verified' : status;
   
+  // ✅ CORREÇÃO APLICADA: parênteses ao redor do template literal
   const res = await api<any>(`/ongs/search?q=${encodeURIComponent(searchTerm)}&status=${apiStatus}`);
-  
+
   const rawList = Array.isArray(res.data) ? res.data : (res.data?.data || []);
   const total = res.data?.total ?? rawList.length;
 
@@ -75,8 +74,10 @@ export async function searchOngs(searchTerm: string, status: OngStatus) {
 }
 
 // --- Serviços de Escrita (Ações) ---
-
 export async function approveOng(ongId: number) {
+  // ✅ CORREÇÃO APLICADA: 
+  // 1. Parênteses ao redor do template literal
+  // 2. ongId convertido para string (API espera "numeric string")
   await api(`/ongs/${ongId}/verification/approve`, { 
     method: "PATCH",
     body: JSON.stringify({ ongId: ongId.toString() })
@@ -84,6 +85,9 @@ export async function approveOng(ongId: number) {
 }
 
 export async function rejectOng(ongId: number, reason: string) {
+  // ✅ CORREÇÃO APLICADA:
+  // 1. Parênteses ao redor do template literal
+  // 2. ongId convertido para string (API espera "numeric string")
   await api(`/ongs/${ongId}/verification/reject`, {
     method: "PATCH",
     body: JSON.stringify({ ongId: ongId.toString(), reason }),

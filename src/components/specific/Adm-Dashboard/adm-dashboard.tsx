@@ -28,7 +28,7 @@ export default function AdminDashboard() {
     try {
       const profile = await getMyProfile();
       console.log('Admin profile loaded:', profile);
-      const name = profile.name || profile.fullName || profile.username || profile.email || 'Administrador';
+      const name = profile.user.name || 'Administrador';
       console.log('Using name:', name);
       setAdminName(name);
     } catch (error) {

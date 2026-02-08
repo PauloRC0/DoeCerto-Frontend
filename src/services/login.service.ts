@@ -8,7 +8,11 @@ interface LoginDTO {
 interface LoginResponse {
   accessToken?: string;
   access_token?: string;
-  token?: string; 
+  token?: string;
+  user?: {
+    role?: string;
+    // add other user fields if needed
+  };
 }
 
 export async function login(data: LoginDTO) {
