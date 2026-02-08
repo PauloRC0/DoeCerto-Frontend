@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import OngDashboard from "@/components/specific/OngDashboard/ong-dashboard";
-import { OngProfileService } from "@/services/ongs-profile.service";
+import { OngsProfileService } from "@/services/ongs-profile.service";
 import { Loader2 } from "lucide-react";
 
 export default function OngDashboardPage() {
@@ -12,7 +12,7 @@ export default function OngDashboardPage() {
     useEffect(() => {
         async function fetchProfile() {
             try {
-                const data = await OngProfileService.getMyProfile();
+                const data = await OngsProfileService.getMyProfile();
                 setOng(data);
             } catch (error) {
                 console.error("Erro ao carregar perfil:", error);
