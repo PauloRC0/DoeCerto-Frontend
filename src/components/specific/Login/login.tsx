@@ -43,8 +43,19 @@ export default function LoginPage() {
         
         toast.success("Login realizado com sucesso!");
 
+        // Decodificar o token para obter a role
+        let userRole = null;
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          userRole = payload.role;
+        } catch (e) {
+          console.error("Erro ao decodificar token:", e);
+        }
+
+        const redirectPath = userRole === 'admin' ? '/adm-dashboard' : '/home';
+
         setTimeout(() => {
-          router.push("/home");
+          router.push(redirectPath);
         }, 1500);
       } else {
         toast.error("Erro ao processar autenticação.");

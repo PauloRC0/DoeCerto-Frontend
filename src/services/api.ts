@@ -10,11 +10,10 @@ export async function api<T>(
 
   // 1. Busca o token no Preferences (Nativo do Celular)
   let token = null;
-
   if (typeof window !== "undefined") {
     const { value } = await Preferences.get({ key: "access_token" });
     token = value;
-    
+
     // Fallback para cookies (Web)
     if (!token) {
       token = document.cookie
@@ -23,6 +22,8 @@ export async function api<T>(
         ?.split("=")[1];
     }
   }
+
+  console.log('Token found:', token ? 'Yes' : 'No');
 
   if (token) {
     headers.set("Authorization", `Bearer ${token}`);
@@ -40,6 +41,7 @@ export async function api<T>(
   }
 
   try {
+    // ✅ CORREÇÃO: sintaxe correta do fetch com template literal
     const res = await fetch(`${API_URL}${endpoint}`, {
       ...options,
       headers,
