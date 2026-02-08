@@ -19,6 +19,9 @@ import {
   Edit2
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { MonetaryDonationDetails } from "@/components/ui/MonetaryDonationDetails";
+import { MaterialDonationDetails } from "@/components/ui/MaterialDonationDetails";
+
 import Image from "next/image";
 
 interface DonationHistory {
@@ -364,19 +367,12 @@ export default function DonorProfile() {
                     </span>
                   </div>
 
-                  <div className="mt-3 pt-3 border-t border-gray-100">
                     {donation.type === "monetary" ? (
-                      <div>
-                        <p className="text-sm text-gray-600">Valor doado</p>
-                        <p className="text-xl font-bold text-green-600">{donation.amount}</p>
-                      </div>
+                      <MonetaryDonationDetails amount={donation.amount!} />
                     ) : (
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">Itens doados</p>
-                        <p className="text-gray-900">{donation.items}</p>
-                      </div>
+                      <MaterialDonationDetails items={donation.items!} />
                     )}
-                  </div>
+
                 </motion.div>
               ))
             )}
