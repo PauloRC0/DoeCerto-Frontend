@@ -1,13 +1,36 @@
 "use client";
 
-
+import React, { useEffect, useState } from "react";
 import OngDashboard from "@/components/specific/OngDashboard/ong-dashboard";
-import { ongs } from "@/data/ongs"; 
+import { OngProfileService } from "@/services/ongs-profile.service";
+import { Loader2 } from "lucide-react";
 
 export default function OngDashboardPage() {
-    const myOng = ongs[0];
+    const [ong, setOng] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
 
-    if (!myOng) return <div>Carregando...</div>;
+    useEffect(() => {
+        async function fetchProfile() {
+            try {
+                const data = await OngProfileService.getMyProfile();
+                setOng(data);
+            } catch (error) {
+                console.error("Erro ao carregar perfil:", error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchProfile();
+    }, []);
 
-    return <OngDashboard ong={myOng} />;
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-white">
+                <Loader2 className="animate-spin text-[#4a1d7a]" size={40} />
+            </div>
+        );
+    }
+
+    // Agora ele passa o 'ong' vindo da API para o componente
+    return <OngDashboard ong={ong} />;
 }
