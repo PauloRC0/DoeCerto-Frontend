@@ -16,11 +16,14 @@ export const OngsProfileService = {
     return diff <= 0 ? "Novo" : `${diff} ${diff === 1 ? 'ano' : 'anos'}`;
   },
 
-async getPublicProfile(ongId: number) {
-    const [resProfile, resReviews] = await Promise.all([
-      api<any>(`/ongs/${ongId}/profile`),
-      api<any>(`/ongs/${ongId}/ratings`)
-    ]);
+  async getPublicProfile(ongId: number) {
+    try {
+      // Fazemos as chamadas em paralelo para performance
+      const [resBase, resProfile, resReviews] = await Promise.all([
+        api<any>(`/ongs/${ongId}`).catch(() => ({ data: {} })),         // Cadastro
+        api<any>(`/ongs/${ongId}/profile`).catch(() => ({ data: {} })), // Perfil
+        api<any>(`/ongs/${ongId}/ratings`).catch(() => ({ data: [] }))  // Avaliações
+      ]);
 
     const source = resProfile.data?.ong || resProfile.data;
     
@@ -46,9 +49,6 @@ async getPublicProfile(ongId: number) {
     };
   },
 
-  /**
-   * ADICIONADO: Envia a avaliação para a API
-   */
   async postReview(ongId: number, score: number, comment: string) {
     return api(`/ongs/${ongId}/ratings`, {
       method: "POST",

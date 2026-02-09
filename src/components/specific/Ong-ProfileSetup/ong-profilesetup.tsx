@@ -19,7 +19,7 @@ import { FormSection } from "@/components/ui/form-section";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { InputGroup } from "@/components/ui/input-group";
 import { ImageUploader } from "@/components/ui/image-uploader";
-
+import { BankAccountService } from "@/services/bank-account.service";
 import { OngsProfileService } from "@/services/ongs-profile.service";
 import { OngSetupService } from "@/services/ongSetup.service";
 
@@ -45,10 +45,15 @@ export default function OngSetupProfile() {
 
   const [items, setItems] = useState<string[]>([]);
   const [newItem, setNewItem] = useState("");
-  const [pixKey, setPixKey] = useState("");
-  const [pixType, setPixType] = useState("CNPJ");
 
-  const pixOptions = ["CNPJ", "CPF", "E-mail", "Telefone", "Chave Aleatória"];
+  const [bankName, setBankName] = useState("");
+  const [agencyNumber, setAgencyNumber] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [pixKey, setPixKey] = useState("");
+  const [accountType, setAccountType] = useState("Corrente");
+
+  const accountTypeOptions = ["Corrente", "Poupança", "Aplicação"];
+
 
   useEffect(() => {
     async function loadInitialData() {
@@ -87,6 +92,14 @@ export default function OngSetupProfile() {
           if (profile.categories) {
             setSelectedCategoryIds(profile.categories.map((c: any) => c.id));
           }
+        }
+        const bankData = await BankAccountService.getMyAccount();
+        if (bankData) {
+          setBankName(bankData.bankName || "");
+          setAgencyNumber(bankData.agencyNumber || "");
+          setAccountNumber(bankData.accountNumber || "");
+          setPixKey(bankData.pixKey || "");
+          setAccountType(bankData.accountType || "Corrente");
         }
       } catch (error) {
         console.error("Erro ao carregar dados iniciais:", error);
@@ -139,6 +152,15 @@ export default function OngSetupProfile() {
           bannerFile || undefined
         );
       }
+
+      // ETAPA 3: Itens
+      await BankAccountService.saveAccount({
+        bankName,
+        agencyNumber,
+        accountNumber,
+        accountType,
+        pixKey
+      });
 
       router.push("/ong-dashboard");
     } catch (error: any) {
@@ -245,8 +267,8 @@ export default function OngSetupProfile() {
                   type="button"
                   onClick={() => toggleCategory(cat.id)}
                   className={`px-3 py-1.5 rounded-xl text-[11px] sm:text-sm font-bold transition-all border ${selectedCategoryIds.includes(cat.id)
-                      ? "bg-[#4a1d7a] text-white border-[#4a1d7a] shadow-md"
-                      : "bg-gray-50 text-gray-500 border-gray-100 hover:bg-purple-50"
+                    ? "bg-[#4a1d7a] text-white border-[#4a1d7a] shadow-md"
+                    : "bg-gray-50 text-gray-500 border-gray-100 hover:bg-purple-50"
                     }`}
                 >
                   {cat.name}
@@ -255,15 +277,59 @@ export default function OngSetupProfile() {
             </div>
           </FormSection>
 
-          <FormSection title="Receber Doações via PIX" icon={Wallet} className="bg-gradient-to-br from-white to-purple-50">
+          <FormSection title="Dados para Recebimento" icon={Wallet} className="bg-gradient-to-br from-white to-purple-50">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-              <CustomSelect label="Tipo de Chave" value={pixType} options={pixOptions} onChange={setPixType} />
-              <input
-                value={pixKey}
-                onChange={(e) => setPixKey(e.target.value)}
-                placeholder="Chave PIX"
-                className="w-full bg-white p-4 rounded-xl border border-gray-100 outline-none text-sm focus:border-purple-300 transition-colors"
+              {/* Banco - Ocupa a linha toda */}
+              <div className="md:col-span-2">
+                <label className="text-[10px] font-black uppercase text-purple-400 mb-1 block ml-1">Instituição Bancária</label>
+                <input
+                  value={bankName}
+                  onChange={(e) => setBankName(e.target.value)}
+                  placeholder="Ex: Nubank, Itaú, Banco do Brasil..."
+                  className="w-full bg-white p-4 rounded-xl border border-gray-100 outline-none text-sm focus:border-purple-300 transition-colors shadow-sm"
+                />
+              </div>
+
+              {/* Tipo de Conta */}
+              <CustomSelect
+                label="Tipo de Conta"
+                value={accountType}
+                options={accountTypeOptions}
+                onChange={setAccountType}
               />
+
+              {/* Chave PIX */}
+              <div className="flex flex-col">
+                <label className="text-[10px] font-black uppercase text-purple-400 mb-1 block ml-1">Chave PIX</label>
+                <input
+                  value={pixKey}
+                  onChange={(e) => setPixKey(e.target.value)}
+                  placeholder="CPF, E-mail, Telefone ou Chave"
+                  className="w-full bg-white p-4 rounded-xl border border-gray-100 outline-none text-sm focus:border-purple-300 transition-colors shadow-sm"
+                />
+              </div>
+
+              {/* Agência */}
+              <div className="flex flex-col">
+                <label className="text-[10px] font-black uppercase text-purple-400 mb-1 block ml-1">Agência</label>
+                <input
+                  value={agencyNumber}
+                  onChange={(e) => setAgencyNumber(e.target.value)}
+                  placeholder="0001"
+                  className="w-full bg-white p-4 rounded-xl border border-gray-100 outline-none text-sm focus:border-purple-300 transition-colors shadow-sm"
+                />
+              </div>
+
+              {/* Conta */}
+              <div className="flex flex-col">
+                <label className="text-[10px] font-black uppercase text-purple-400 mb-1 block ml-1">Conta com Dígito</label>
+                <input
+                  value={accountNumber}
+                  onChange={(e) => setAccountNumber(e.target.value)}
+                  placeholder="123456-7"
+                  className="w-full bg-white p-4 rounded-xl border border-gray-100 outline-none text-sm focus:border-purple-300 transition-colors shadow-sm"
+                />
+              </div>
             </div>
           </FormSection>
 

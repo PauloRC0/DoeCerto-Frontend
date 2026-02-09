@@ -29,6 +29,8 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
   // Estados para Modais
   const [confirmModal, setConfirmModal] = useState<{ id: number; type: 'accept' | 'reject' } | null>(null);
   const [selectedDonation, setSelectedDonation] = useState<any | null>(null);
+  const [zoomImage, setZoomImage] = useState<string | null>(null);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL
 
   async function loadData() {
     try {
@@ -61,7 +63,8 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
     const { id, type } = confirmModal;
 
     try {
-      setLoading(true); 
+      setLoading(true);
+
       if (type === 'accept') {
         await DonationService.acceptDonation(id);
       } else {
@@ -69,11 +72,21 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
       }
 
       setConfirmModal(null);
+
       setSelectedDonation(null);
+
+      setIsHistoryOpen(false);
+
       await loadData();
-    } catch (error) {
+
+      console.log(`Doação ${type === 'accept' ? 'aceita' : 'rejeitada'} com sucesso!`);
+
+    } catch (error: any) {
       console.error("Erro ao processar ação:", error);
-      alert("Não foi possível atualizar o status da doação.");
+
+      // Tratamento de erro mais amigável
+      const errorMessage = error.response?.data?.message || "Não foi possível atualizar o status da doação.";
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -235,9 +248,16 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
       <AnimatePresence>
         {selectedDonation && (
           <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 sm:p-6 text-gray-900">
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white w-full max-w-md rounded-[32px] overflow-hidden shadow-2xl relative">
-
-              <button onClick={() => setSelectedDonation(null)} className="absolute top-4 right-4 z-10 p-2 bg-black/10 hover:bg-black/20 rounded-full transition-colors">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white w-full max-w-md rounded-[32px] overflow-hidden shadow-2xl relative"
+            >
+              <button
+                onClick={() => setSelectedDonation(null)}
+                className="absolute top-4 right-4 z-10 p-2 bg-black/10 hover:bg-black/20 rounded-full transition-colors"
+              >
                 <X size={20} className="text-gray-700" />
               </button>
 
@@ -252,14 +272,38 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
                   </div>
                 </div>
 
+                {/* PARTE DO COMPROVANTE CONFIGURADA PARA ZOOM INTERNO (MELHOR PARA CELULAR) */}
                 {selectedDonation.type === 'monetary' && (
                   <div className="bg-gray-50 rounded-[24px] border-2 border-dashed border-gray-200 p-2 mb-6">
                     {selectedDonation.proofUrl ? (
                       <div className="relative group">
-                        <img src={selectedDonation.proofUrl} alt="Comprovante" className="w-full h-48 object-cover rounded-[18px] shadow-sm" />
+                        <img
+                          src={
+                            selectedDonation.proofUrl.startsWith('http')
+                              ? selectedDonation.proofUrl
+                              : `${API_URL}/${selectedDonation.proofUrl.replace(/\\/g, '/').replace(/^\/+/, '')}`
+                          }
+                          alt="Comprovante"
+                          className="w-full h-48 object-cover rounded-[18px] shadow-sm cursor-zoom-in"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = "https://placehold.co/400x200?text=Erro+ao+carregar+imagem";
+                          }}
+                          onClick={() => {
+                            const fullUrl = selectedDonation.proofUrl.startsWith('http')
+                              ? selectedDonation.proofUrl
+                              : `${API_URL}/${selectedDonation.proofUrl.replace(/\\/g, '/').replace(/^\/+/, '')}`;
+                            setZoomImage(fullUrl);
+                          }}
+                        />
+
                         <button
-                          onClick={() => window.open(selectedDonation.proofUrl, '_blank')}
-                          className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white font-bold rounded-[18px]"
+                          onClick={() => {
+                            const fullUrl = selectedDonation.proofUrl.startsWith('http')
+                              ? selectedDonation.proofUrl
+                              : `${API_URL}/${selectedDonation.proofUrl.replace(/\\/g, '/').replace(/^\/+/, '')}`;
+                            setZoomImage(fullUrl);
+                          }}
+                          className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white font-bold rounded-[18px] backdrop-blur-[2px]"
                         >
                           <ExternalLink size={20} /> Ver em tela cheia
                         </button>
@@ -298,6 +342,7 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
                   )}
                 </div>
 
+                {/* LÓGICA DOS BOTÕES DE AÇÃO */}
                 {selectedDonation.status === 'PENDING' ? (
                   <div className="flex gap-3">
                     <button
@@ -314,7 +359,10 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
                     </button>
                   </div>
                 ) : (
-                  <button onClick={() => setSelectedDonation(null)} className="w-full py-4 bg-gray-100 text-gray-600 font-bold rounded-2xl hover:bg-gray-200 transition-colors">
+                  <button
+                    onClick={() => setSelectedDonation(null)}
+                    className="w-full py-4 bg-gray-100 text-gray-600 font-bold rounded-2xl hover:bg-gray-200 transition-colors"
+                  >
                     Fechar
                   </button>
                 )}
@@ -340,6 +388,43 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
               </div>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      {/* --- OVERLAY DE ZOOM (TELA CHEIA PARA CELULAR) --- */}
+      <AnimatePresence>
+        {zoomImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setZoomImage(null)}
+            className="fixed inset-0 z-[300] bg-black/95 flex items-center justify-center p-2 backdrop-blur-sm"
+          >
+            <button
+              className="absolute top-6 right-6 text-white bg-white/10 p-3 rounded-full hover:bg-white/20 transition-colors z-50"
+              onClick={(e) => {
+                e.stopPropagation();
+                setZoomImage(null);
+              }}
+            >
+              <X size={32} />
+            </button>
+
+            <motion.img
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              src={zoomImage}
+              className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+              alt="Comprovante ampliado"
+              onClick={(e) => e.stopPropagation()} // Impede fechar ao clicar na imagem
+            />
+
+            <p className="absolute bottom-10 text-white/60 font-medium text-sm">
+              Toque fora para fechar
+            </p>
+          </motion.div>
         )}
       </AnimatePresence>
 
