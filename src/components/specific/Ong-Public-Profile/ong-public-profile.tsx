@@ -43,38 +43,22 @@ export default function OngPublicProfile({ ongId }: { ongId: number }) {
   const [data, setData] = useState<{ ong: OngProfileData; reviews: Review[] } | null>(null);
   const [errors, setErrors] = useState({ banner: false, logo: false });
 
-  const loadData = async () => {
-    if (!ongId) return;
-    try {
-      const result = await OngsProfileService.getPublicProfile(ongId);
-      const raw = result as any;
-
-      const categoriesSource =
-        raw.categories || 
-        raw.ong?.categories || 
-        raw.user?.ong?.categories || 
-        raw.ongCategories || 
-        [];
-
-      const mappedCategories = Array.isArray(categoriesSource)
-        ? categoriesSource.map((c: any) => {
-            if (typeof c === 'string') return c;
-            return c.name || c.category?.name || c.label || "ONG";
-          })
-        : [];
-
-      setData({
-        ong: {
-          ...raw,
-          ...(raw.ong ? raw.ong : {}),
-          categories: mappedCategories.length > 0 ? mappedCategories : ["Geral"]
-        },
-        reviews: raw.reviews || raw.ong?.reviews || []
-      });
-    } catch (err) {
-      console.error("❌ Erro ao buscar dados:", err);
-    }
-  };
+const loadData = async () => {
+  if (!ongId) return;
+  try {
+    const result = await OngsProfileService.getPublicProfile(ongId);
+    
+    setData({
+      ong: {
+        ...result,
+        categories: result.categories.map((c: any) => typeof c === 'string' ? c : c.name)
+      },
+      reviews: result.reviews || []
+    });
+  } catch (err) {
+    console.error("❌ Erro ao carregar perfil:", err);
+  }
+};
 
   useEffect(() => { loadData(); }, [ongId]);
 

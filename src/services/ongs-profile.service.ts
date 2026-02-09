@@ -18,29 +18,27 @@ export const OngsProfileService = {
 
   async getPublicProfile(ongId: number) {
     const [resProfile, resReviews] = await Promise.all([
-      api<any>(`/ongs/${ongId}`),
+      api<any>(`/ongs/${ongId}/profile`), // ✅ Ajustado para a rota correta do controller
       api<any>(`/ongs/${ongId}/ratings`)
     ]);
 
-    
     const source = resProfile.data;
 
     return {
-      id: source.id || ongId,
+      id: source.id,
       name: source.name || "ONG sem nome",
-      cnpj: source.cnpj || source.user?.ong?.cnpj || "CNPJ não informado",
-      banner: this._formatImageUrl(source.bannerUrl || source.banner),
-      logo: this._formatImageUrl(source.avatarUrl || source.logo),
-      description: source.about || source.bio || "ONG verificada.",
-      phone: source.contactNumber || source.phone || "Não informado",
-      instagram: source.websiteUrl || source.instagram || "Não informado",
-      address: source.address || "Endereço não informado",
-      distance: "—",
+      cnpj: source.cnpj || "Não informado",
+      banner: this._formatImageUrl(source.bannerUrl),
+      logo: this._formatImageUrl(source.avatarUrl),
+      description: source.about || "ONG verificada.",
+      phone: source.contactNumber || "Não informado",
+      instagram: source.websiteUrl || "Não informado",
+      address: source.address ? `${source.address.city}, ${source.address.state}` : "Endereço não informado",
+      distance: "—", 
       years: this._calculateYears(source.createdAt || new Date()),
-      numberOfRatings: source.numberOfRatings || source.rating?.count || 0,
-      rating: Number(source.averageRating || source.rating?.average) || 0,
+      numberOfRatings: source.rating?.count || 0,
+      rating: Number(source.rating?.average) || 0,
       donations: source.receivedDonations || 0,
-      // ✅ ADICIONE ESTA LINHA ABAIXO:
       categories: source.categories || [],
       reviews: resReviews.data || []
     };
