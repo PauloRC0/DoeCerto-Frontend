@@ -26,6 +26,8 @@ import {
   MessageSquare
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { OngMaterialDonationCard } from "@/components/ui/OngMaterialDonationCard";
+import { OngMonetaryDonationCard } from "@/components/ui/OngMonetaryDonationCard";
 import { OngsProfileService } from "@/services/ongs-profile.service";
 import { api } from "@/services/api";
 
@@ -57,7 +59,7 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
     async function loadData() {
       try {
         const profileData = await OngsProfileService.getMyProfile();
-        
+
         if (isMounted) {
           setOng(profileData);
 
@@ -239,7 +241,7 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
                 <p className="text-[10px] sm:text-sm text-gray-500 font-bold uppercase tracking-tight">Doações</p>
               </div>
 
-              <button 
+              <button
                 onClick={() => setIsReviewsOpen(true)}
                 className="flex-1 min-w-[100px] p-3 sm:p-4 rounded-lg bg-yellow-50 text-center border border-yellow-100 hover:bg-yellow-100 transition-all cursor-pointer"
               >
@@ -270,42 +272,82 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
         </div>
       </div>
 
+
       <AnimatePresence>
         {isHistoryOpen && (
           <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm text-gray-900">
             <motion.div
-              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
               className="bg-white w-full max-w-lg rounded-t-[24px] md:rounded-[32px] overflow-hidden shadow-2xl"
             >
+              {/* Header do Modal */}
               <div className="p-4 sm:p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                 <h3 className="text-lg sm:text-xl font-bold text-gray-900">Doações Recebidas</h3>
-                <button onClick={() => setIsHistoryOpen(false)} className="p-2 bg-white rounded-full shadow-sm text-gray-900"><X size={18} /></button>
+                <button
+                  onClick={() => setIsHistoryOpen(false)}
+                  className="p-2 bg-white rounded-full shadow-sm text-gray-900 hover:bg-gray-100 transition-colors"
+                >
+                  <X size={18} />
+                </button>
               </div>
 
-              <div className="p-4 sm:p-6 max-h-[60vh] overflow-y-auto space-y-4">
+              {/* Lista de Histórico */}
+              <div className="p-4 sm:p-6 max-h-[60vh] overflow-y-auto space-y-4 text-gray-900">
                 {historyData.map((item) => (
                   <div key={item.id} className="p-3 sm:p-4 rounded-2xl border border-gray-100 bg-white shadow-sm">
+
+                    {/* Topo do Card: Ícone + Título + Status */}
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex items-center gap-2 sm:gap-3">
                         {item.type === "money" ? (
-                          <div className="p-2 bg-green-50 rounded-lg text-green-600"><Heart size={18} fill="currentColor" /></div>
+                          <div className="p-2 bg-green-50 rounded-lg text-green-600">
+                            <Heart size={18} fill="currentColor" />
+                          </div>
                         ) : (
-                          <div className="p-2 bg-blue-50 rounded-lg text-blue-600"><Package size={18} /></div>
+                          <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+                            <Package size={18} />
+                          </div>
                         )}
                         <div>
-                          <p className="font-bold text-gray-900 text-sm sm:text-lg">{item.type === "money" ? `Doação ${item.value}` : "Doação de Itens"}</p>
+                          <p className="font-bold text-gray-900 text-sm sm:text-lg leading-tight">
+                            {item.type === "money" ? `Doação ${item.value}` : "Doação de Itens"}
+                          </p>
                           <p className="text-[10px] sm:text-sm text-gray-400 font-medium">{item.date}</p>
                         </div>
                       </div>
-                      <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${item.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+
+                      {/* Badge de Status Unificado */}
+                      <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${item.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                        }`}>
                         {item.status === 'confirmed' ? <CheckCircle2 size={10} /> : <Clock size={10} />}
                         {item.status === 'confirmed' ? 'Recebido' : 'Pendente'}
                       </div>
                     </div>
+
+                    {/* Conteúdo Dinâmico */}
+                    <div className="mt-2">
+                      {item.type === "items" && (
+                        /* Mostra a lista apenas se for doação de materiais */
+                        <OngMaterialDonationCard items={item.items!} />
+                      )}
+                      {
+                        
+                      }
+                    </div>
+
+                    {/* Rodapé: Botões de Ação */}
                     <div className="mt-4 pt-3 border-t border-dashed border-gray-100 flex gap-2">
-                      <button className="flex-1 flex items-center justify-center gap-2 text-[10px] sm:text-xs font-bold text-[#4a1d7a] py-2 bg-purple-50 rounded-lg">
+                      <button className="flex-1 flex items-center justify-center gap-2 text-[10px] sm:text-xs font-bold text-[#4a1d7a] py-2 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
                         <FileText size={14} /> Comprovante
                       </button>
+
+                      {item.status === "pending" && (
+                        <button className="flex-1 text-[10px] sm:text-xs font-bold text-white py-2 bg-[#4a1d7a] rounded-lg shadow-sm hover:bg-[#3d1864] transition-colors">
+                          Confirmar
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -314,6 +356,7 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
           </div>
         )}
       </AnimatePresence>
+
 
       <AnimatePresence>
         {isReviewsOpen && (
@@ -340,11 +383,11 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
                       </span>
                       <div className="flex">
                         {[...Array(5)].map((_, i) => (
-                          <Star 
-                            key={i} 
-                            size={10} 
-                            fill={i < (r.score || 0) ? "#facc15" : "transparent"} 
-                            className={i < (r.score || 0) ? "text-yellow-400" : "text-gray-300"} 
+                          <Star
+                            key={i}
+                            size={10}
+                            fill={i < (r.score || 0) ? "#facc15" : "transparent"}
+                            className={i < (r.score || 0) ? "text-yellow-400" : "text-gray-300"}
                           />
                         ))}
                       </div>
