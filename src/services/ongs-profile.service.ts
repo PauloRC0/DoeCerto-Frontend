@@ -16,17 +16,19 @@ export const OngsProfileService = {
     return diff <= 0 ? "Novo" : `${diff} ${diff === 1 ? 'ano' : 'anos'}`;
   },
 
-async getPublicProfile(ongId: number) {
+  async getPublicProfile(ongId: number) {
     const [resProfile, resReviews] = await Promise.all([
-      api<any>(`/ongs/${ongId}/profile`),
+      api<any>(`/ongs/${ongId}`),
       api<any>(`/ongs/${ongId}/ratings`)
     ]);
 
-    const source = resProfile.data?.ong || resProfile.data;
     
+    const source = resProfile.data;
+
     return {
       id: source.id || ongId,
       name: source.name || "ONG sem nome",
+      cnpj: source.cnpj || source.user?.ong?.cnpj || "CNPJ não informado",
       banner: this._formatImageUrl(source.bannerUrl || source.banner),
       logo: this._formatImageUrl(source.avatarUrl || source.logo),
       description: source.about || source.bio || "ONG verificada.",
@@ -39,7 +41,7 @@ async getPublicProfile(ongId: number) {
       rating: Number(source.averageRating || source.rating?.average) || 0,
       donations: source.receivedDonations || 0,
       // ✅ ADICIONE ESTA LINHA ABAIXO:
-      categories: source.categories || [], 
+      categories: source.categories || [],
       reviews: resReviews.data || []
     };
   },
