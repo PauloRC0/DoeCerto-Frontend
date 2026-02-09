@@ -12,12 +12,17 @@ import { OngsProfileService } from "@/services/ongs-profile.service";
 import { DonationService } from "@/services/donations.service";
 import { api } from "@/services/api";
 
-export default function OngDashboard() {
+// Definição da interface para aceitar a prop vinda da página pai
+interface OngDashboardProps {
+  ong?: any;
+}
+
+export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
   const router = useRouter();
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isReviewsOpen, setIsReviewsOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [ong, setOng] = useState<any>(null);
+  const [loading, setLoading] = useState(!initialOng);
+  const [ong, setOng] = useState<any>(initialOng);
   const [reviews, setReviews] = useState<any[]>([]);
   const [donations, setDonations] = useState<any[]>([]);
 
@@ -51,20 +56,18 @@ export default function OngDashboard() {
   }, []);
 
   const handleConfirmAction = async () => {
-    // Pegamos os dados sempre do confirmModal
     if (!confirmModal) return;
 
     const { id, type } = confirmModal;
 
     try {
-      setLoading(true); // Opcional: adicionar um feedback de loading global
+      setLoading(true); 
       if (type === 'accept') {
         await DonationService.acceptDonation(id);
       } else {
         await DonationService.rejectDonation(id);
       }
 
-      // Fecha tudo e recarrega
       setConfirmModal(null);
       setSelectedDonation(null);
       await loadData();
@@ -78,7 +81,7 @@ export default function OngDashboard() {
 
   if (!ong || !ong.about) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6 text-gray-900">
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-white p-8 rounded-[32px] shadow-xl border border-gray-100 max-w-md w-full text-center">
           <div className="w-20 h-20 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-6">
             <AlertCircle size={40} className="text-[#4a1d7a]" />
@@ -231,7 +234,7 @@ export default function OngDashboard() {
       {/* --- MODAL DE DETALHES DA DOAÇÃO (COMPROVANTE) --- */}
       <AnimatePresence>
         {selectedDonation && (
-          <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 sm:p-6">
+          <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 sm:p-6 text-gray-900">
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white w-full max-w-md rounded-[32px] overflow-hidden shadow-2xl relative">
 
               <button onClick={() => setSelectedDonation(null)} className="absolute top-4 right-4 z-10 p-2 bg-black/10 hover:bg-black/20 rounded-full transition-colors">
@@ -249,7 +252,6 @@ export default function OngDashboard() {
                   </div>
                 </div>
 
-                {/* Área do Comprovante - EXIBIDA APENAS SE FOR MONETÁRIO */}
                 {selectedDonation.type === 'monetary' && (
                   <div className="bg-gray-50 rounded-[24px] border-2 border-dashed border-gray-200 p-2 mb-6">
                     {selectedDonation.proofUrl ? (
@@ -271,7 +273,6 @@ export default function OngDashboard() {
                   </div>
                 )}
 
-                {/* Informações Textuais - O design se adapta se a imagem sumir */}
                 <div className="space-y-4 mb-8">
                   <div className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
                     <span className="text-sm text-gray-500 font-bold">Doador</span>
@@ -297,7 +298,6 @@ export default function OngDashboard() {
                   )}
                 </div>
 
-                {/* Ações (Aceitar/Recusar) */}
                 {selectedDonation.status === 'PENDING' ? (
                   <div className="flex gap-3">
                     <button
@@ -307,7 +307,7 @@ export default function OngDashboard() {
                       Recusar
                     </button>
                     <button
-                      onClick={() => setConfirmModal({ id: selectedDonation.id, type: 'accept' })} // Agora abre o modal de confirmação
+                      onClick={() => setConfirmModal({ id: selectedDonation.id, type: 'accept' })}
                       className="flex-1 py-4 bg-[#4a1d7a] text-white font-bold rounded-2xl shadow-lg shadow-purple-200 hover:bg-[#3a1661] transition-all"
                     >
                       Aceitar Doação
@@ -327,7 +327,7 @@ export default function OngDashboard() {
       {/* --- MODAL DE CONFIRMAÇÃO --- */}
       <AnimatePresence>
         {confirmModal && (
-          <div className="fixed inset-0 z-[130] flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-6">
+          <div className="fixed inset-0 z-[130] flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-6 text-gray-900">
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white w-full max-w-xs rounded-[32px] p-6 shadow-2xl text-center border border-gray-100">
               <div className={`w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center ${confirmModal.type === 'accept' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
                 {confirmModal.type === 'accept' ? <CheckCircle2 size={32} /> : <AlertTriangle size={32} />}
