@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  MapPin, Heart, Award, Instagram, Phone, Home, 
-  Star, ArrowLeft, Image as ImageIcon, MessageSquare, X 
+import {
+  MapPin, Heart, Award, Instagram, Phone, Home,
+  Star, ArrowLeft, Image as ImageIcon, MessageSquare, X, Tag
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import DonateModal from "@/components/specific/DonateModal";
@@ -32,11 +32,12 @@ export interface OngProfileData {
   numberOfRatings: number;
   rating: number;
   donations: number;
+  categories: any[];
 }
 
 export default function OngPublicProfile({ ongId }: { ongId: number }) {
   const router = useRouter();
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [data, setData] = useState<{ ong: OngProfileData; reviews: Review[] } | null>(null);
@@ -46,9 +47,29 @@ export default function OngPublicProfile({ ongId }: { ongId: number }) {
     if (!ongId) return;
     try {
       const result = await OngsProfileService.getPublicProfile(ongId);
+      const raw = result as any;
+
+      const categoriesSource =
+        raw.categories || 
+        raw.ong?.categories || 
+        raw.user?.ong?.categories || 
+        raw.ongCategories || 
+        [];
+
+      const mappedCategories = Array.isArray(categoriesSource)
+        ? categoriesSource.map((c: any) => {
+            if (typeof c === 'string') return c;
+            return c.name || c.category?.name || c.label || "ONG";
+          })
+        : [];
+
       setData({
-        ong: result as unknown as OngProfileData,
-        reviews: (result as any).reviews || []
+        ong: {
+          ...raw,
+          ...(raw.ong ? raw.ong : {}),
+          categories: mappedCategories.length > 0 ? mappedCategories : ["Geral"]
+        },
+        reviews: raw.reviews || raw.ong?.reviews || []
       });
     } catch (err) {
       console.error("❌ Erro ao buscar dados:", err);
@@ -69,16 +90,16 @@ export default function OngPublicProfile({ ongId }: { ongId: number }) {
   const { ong, reviews } = data;
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 pb-36">
+    <div className="min-h-screen bg-white text-gray-900 pb-36 font-sans">
       {/* Banner Section */}
       <div className="relative w-full h-[220px] xs:h-[260px] sm:h-[340px] bg-gray-200">
         {ong.banner && !errors.banner ? (
-          <motion.img 
-            src={ong.banner} 
-            className="absolute inset-0 w-full h-full object-cover object-top" 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            onError={() => setErrors(prev => ({ ...prev, banner: true }))} 
+          <motion.img
+            src={ong.banner}
+            className="absolute inset-0 w-full h-full object-cover object-top"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            onError={() => setErrors(prev => ({ ...prev, banner: true }))}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-300">
@@ -94,24 +115,41 @@ export default function OngPublicProfile({ ongId }: { ongId: number }) {
           {ong.logo && !errors.logo ? (
             <img src={ong.logo} className="w-full h-full object-cover" alt="Logo" onError={() => setErrors(prev => ({ ...prev, logo: true }))} />
           ) : (
-            <span className="text-3xl font-black text-[#4a1d7a]">{ong.name.charAt(0).toUpperCase()}</span>
+            <span className="text-3xl font-black text-[#4a1d7a]">{ong.name?.charAt(0).toUpperCase() || "O"}</span>
           )}
         </motion.div>
       </div>
 
       <div className="px-6 mt-14 sm:mt-20">
-        <h1 className="text-3xl sm:text-4xl font-black text-gray-900 leading-tight">{ong.name}</h1>
+        <h1 className="text-3xl sm:text-4xl font-bold text-[#002B49] leading-tight">{ong.name}</h1>
 
-        <div className="text-gray-500 mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm font-medium items-center">
-          <span className="flex items-center gap-1"><MapPin size={16} className="text-red-400" /> {ong.distance}</span>
-          <span className="flex items-center gap-1"><Award size={16} className="text-blue-400" /> {ong.years}</span>
-          <div className="flex items-center gap-1 bg-yellow-50 px-2 py-0.5 rounded-lg border border-yellow-100">
-            <Star size={16} fill="#facc15" className="text-yellow-400" />
-            <span className="text-yellow-700 font-bold">{ong.rating.toFixed(1)}</span>
+        {/* --- LOCALIZAÇÃO E ANOS --- */}
+        <div className="text-gray-400 mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm font-medium items-center">
+          <span className="flex items-center gap-1.5"><MapPin size={18} className="text-red-400" /> {ong.address || "Endereço não informado"}</span>
+          <span className="flex items-center gap-1.5"><Award size={18} className="text-blue-400" /> {ong.years || "Novo"}</span>
+        </div>
+
+        {/* --- CATEGORIAS --- */}
+        {ong.categories && ong.categories.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-4">
+            {ong.categories.map((cat, idx) => (
+              <span key={idx} className="px-3 py-1.5 bg-purple-50 text-[#4a1d7a] border border-purple-100 text-[11px] sm:text-xs font-bold rounded-full flex items-center gap-1.5 shadow-sm">
+                <Tag size={12} className="text-purple-400" />
+                {cat}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* --- RATING (ESTRELA) LOGO ABAIXO DAS CATEGORIAS --- */}
+        <div className="mt-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-yellow-50 border border-yellow-100 rounded-xl">
+            <Star size={18} fill="#facc15" className="text-yellow-400" />
+            <span className="text-yellow-700 font-bold text-sm">{ong.rating?.toFixed(1) || "0.0"}</span>
           </div>
         </div>
 
-        <div className="mt-5 grid grid-cols-1 gap-4">
+        <div className="mt-10 grid grid-cols-1 gap-4">
           <div className="p-6 rounded-2xl bg-white shadow-md border border-gray-100">
             <h2 className="text-xl font-bold text-[#4a1d7a]">Sobre</h2>
             <p className="mt-2 text-gray-700 leading-relaxed">{ong.description}</p>
@@ -142,7 +180,9 @@ export default function OngPublicProfile({ ongId }: { ongId: number }) {
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-sm font-bold text-gray-800">{rev.donor?.user?.name || "Doador"}</span>
                     <div className="flex text-yellow-400">
-                      {Array.from({ length: rev.score }).map((_, idx) => <Star key={idx} size={10} fill="currentColor" />)}
+                      {Array.from({ length: 5 }).map((_, idx) => (
+                        <Star key={idx} size={10} fill={idx < rev.score ? "currentColor" : "none"} className={idx < rev.score ? "" : "text-gray-200"} />
+                      ))}
                     </div>
                   </div>
                   <p className="text-xs text-gray-600 italic">"{rev.comment || "Sem comentário."}"</p>
@@ -160,10 +200,10 @@ export default function OngPublicProfile({ ongId }: { ongId: number }) {
       </div>
 
       {isModalOpen && (
-        <DonateModal 
-          onClose={() => setIsModalOpen(false)} 
-          onDonateMoney={() => router.push(`/pix?id=${ong.id}`)} 
-          onDonateItems={() => router.push(`/donation?ongId=${ong.id}&ong=${encodeURIComponent(ong.name)}`)} 
+        <DonateModal
+          onClose={() => setIsModalOpen(false)}
+          onDonateMoney={() => router.push(`/pix?id=${ong.id}`)}
+          onDonateItems={() => router.push(`/donation?ongId=${ong.id}&ong=${encodeURIComponent(ong.name)}`)}
         />
       )}
 
@@ -174,13 +214,13 @@ export default function OngPublicProfile({ ongId }: { ongId: number }) {
   );
 }
 
-// --- SUB-COMPONENTES AUXILIARES ---
+// --- COMPONENTES AUXILIARES ---
 
 function ContactInfo({ icon, text }: { icon: React.ReactNode, text: string }) {
   return (
     <div className="flex items-center gap-3 text-gray-600 text-sm font-bold">
       <div className="shrink-0">{icon}</div>
-      <span className="truncate">{text}</span>
+      <span className="truncate">{text || "Não informado"}</span>
     </div>
   );
 }
@@ -189,7 +229,7 @@ function StatItem({ icon, value, label }: { icon: React.ReactNode, value: number
   return (
     <div className="p-3 rounded-xl bg-gray-50 text-center border border-gray-100">
       <div className="mx-auto mb-1 flex justify-center">{icon}</div>
-      <p className="text-xl font-black text-gray-900">{value}</p>
+      <p className="text-xl font-black text-gray-900">{value || 0}</p>
       <p className="text-[10px] text-gray-500 font-bold uppercase tracking-tight">{label}</p>
     </div>
   );
@@ -203,13 +243,11 @@ function ReviewPostModal({ ongId, onClose, onSuccess }: { ongId: number, onClose
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      // ✅ CORREÇÃO: Chamando o método de avaliação correto
       await OngsProfileService.postReview(ongId, score, comment);
-      
       onSuccess();
       onClose();
     } catch (err: any) {
-      alert("Erro ao enviar avaliação. Verifique se sua doação já foi concluída.");
+      alert("Erro ao enviar avaliação.");
       console.error(err);
     } finally {
       setLoading(false);
@@ -219,16 +257,15 @@ function ReviewPostModal({ ongId, onClose, onSuccess }: { ongId: number, onClose
   return (
     <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl relative">
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X size={20}/></button>
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X size={20} /></button>
         <h3 className="text-xl font-black text-center text-[#4a1d7a] mb-2">Sua Nota</h3>
-        <p className="text-center text-xs text-gray-500 mb-6 px-4">Sua avaliação ajuda outros doadores a confiarem nesta causa.</p>
         <div className="flex justify-center gap-2 mb-6">
           {[1, 2, 3, 4, 5].map((s) => (
             <Star key={s} size={32} onClick={() => setScore(s)} fill={s <= score ? "#facc15" : "transparent"} className={`${s <= score ? "text-yellow-400" : "text-gray-200"} cursor-pointer transition-colors`} />
           ))}
         </div>
         <textarea className="w-full bg-gray-50 border-none rounded-2xl p-4 text-sm h-28 focus:ring-2 focus:ring-purple-500 outline-none mb-4 resize-none" placeholder="Escreva um breve depoimento..." value={comment} onChange={(e) => setComment(e.target.value)} />
-        <button onClick={handleSubmit} disabled={loading} className="w-full py-4 bg-[#4a1d7a] text-white font-bold rounded-2xl shadow-lg disabled:opacity-50 flex items-center justify-center">
+        <button onClick={handleSubmit} disabled={loading} className="w-full py-4 bg-[#4a1d7a] text-white font-bold rounded-2xl shadow-lg flex items-center justify-center">
           {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : "Enviar Avaliação"}
         </button>
       </motion.div>

@@ -27,7 +27,6 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { OngMaterialDonationCard } from "@/components/ui/OngMaterialDonationCard";
-import { OngMonetaryDonationCard } from "@/components/ui/OngMonetaryDonationCard";
 import { OngsProfileService } from "@/services/ongs-profile.service";
 import { api } from "@/services/api";
 
@@ -64,7 +63,6 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
           setOng(profileData);
 
           if (profileData.id) {
-            // Chamada para o seu controller NestJS: GET /ongs/:id/ratings
             const reviewsRes = await api(`/ongs/${profileData.id}/ratings`);
             setReviews(Array.isArray(reviewsRes.data) ? reviewsRes.data : []);
           }
@@ -80,6 +78,7 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
     return () => { isMounted = false; };
   }, []);
 
+  // Dados fictícios para o histórico (exemplo)
   const historyData: DonationHistory[] = [
     {
       id: "1",
@@ -122,19 +121,13 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
           </div>
           <h2 className="text-2xl font-black text-gray-900 mb-3">Complete seu Perfil</h2>
           <p className="text-gray-600 mb-8 leading-relaxed">
-            Sua ONG ainda não possui as informações configuradas. Complete seu perfil para começar a receber doações e ganhar visibilidade.
+            Sua ONG ainda não possui as informações configuradas. Complete seu perfil para começar a receber doações.
           </p>
           <button
             onClick={() => router.push('/ong-profilesetup')}
-            className="w-full bg-[#4a1d7a] text-white font-bold py-4 rounded-2xl shadow-lg shadow-purple-200 hover:bg-[#3d1864] transition-all flex items-center justify-center gap-2"
+            className="w-full bg-[#4a1d7a] text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-2"
           >
             Configurar agora <ArrowRight size={20} />
-          </button>
-          <button
-            onClick={() => router.back()}
-            className="mt-4 text-gray-400 font-medium text-sm hover:text-gray-600 transition-colors"
-          >
-            Voltar depois
           </button>
         </motion.div>
       </div>
@@ -186,7 +179,9 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
 
       <div className="px-4 sm:px-6 mt-16 sm:mt-20">
         <h1 className="text-2xl sm:text-4xl font-black text-gray-900">{ong.name || "Minha ONG"}</h1>
-        <div className="text-gray-600 mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm sm:text-lg font-medium">
+        
+        {/* --- LOCALIZAÇÃO E ANOS --- */}
+        <div className="text-gray-500 mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm sm:text-lg font-medium">
           <span className="flex items-center gap-1.5">
             <MapPin size={18} className="text-red-400" /> {ong.address?.city || "Localização não definida"}
           </span>
@@ -195,22 +190,24 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
           </span>
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-4">
+        {/* --- CATEGORIAS ADICIONADAS AQUI ABAIXO DO NOME --- */}
+        {ong.categories && ong.categories.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-3">
+            {ong.categories.map((cat: any, idx: number) => (
+              <span key={cat.id || idx} className="px-3 py-1 bg-purple-50 text-[#4a1d7a] border border-purple-100 text-[11px] sm:text-xs font-bold rounded-full flex items-center gap-1.5 shadow-sm">
+                <Tag size={12} className="text-purple-400" />
+                {cat.name || cat}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-8 grid grid-cols-1 gap-4">
           <div className="p-4 sm:p-6 rounded-2xl bg-white shadow-md border border-gray-100">
             <h2 className="text-lg sm:text-xl font-bold text-[#4a1d7a]">Sobre</h2>
             <p className="mt-3 text-gray-700 text-sm sm:text-lg leading-relaxed">
               {ong.about || "Nenhuma descrição informada ainda."}
             </p>
-
-            {ong.categories && ong.categories.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-2">
-                {ong.categories.map((cat: any) => (
-                  <span key={cat.id} className="flex items-center gap-1.5 px-3 py-1 bg-purple-50 text-[#4a1d7a] text-xs sm:text-sm font-bold rounded-full border border-purple-100">
-                    <Tag size={12} /> {cat.name}
-                  </span>
-                ))}
-              </div>
-            )}
 
             <div className="mt-5 pt-5 border-t border-gray-50 space-y-4">
               <div className="flex items-center gap-3 text-gray-600">
@@ -272,82 +269,37 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
         </div>
       </div>
 
-
+      {/* --- MODAIS DE HISTÓRICO E AVALIAÇÕES --- */}
       <AnimatePresence>
         {isHistoryOpen && (
-          <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm text-gray-900">
+          <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm">
             <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
+              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               className="bg-white w-full max-w-lg rounded-t-[24px] md:rounded-[32px] overflow-hidden shadow-2xl"
             >
-              {/* Header do Modal */}
               <div className="p-4 sm:p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900">Doações Recebidas</h3>
-                <button
-                  onClick={() => setIsHistoryOpen(false)}
-                  className="p-2 bg-white rounded-full shadow-sm text-gray-900 hover:bg-gray-100 transition-colors"
-                >
-                  <X size={18} />
-                </button>
+                <h3 className="text-lg font-bold">Doações Recebidas</h3>
+                <button onClick={() => setIsHistoryOpen(false)} className="p-2 bg-white rounded-full shadow-sm"><X size={18} /></button>
               </div>
-
-              {/* Lista de Histórico */}
-              <div className="p-4 sm:p-6 max-h-[60vh] overflow-y-auto space-y-4 text-gray-900">
+              <div className="p-4 sm:p-6 max-h-[60vh] overflow-y-auto space-y-4">
                 {historyData.map((item) => (
-                  <div key={item.id} className="p-3 sm:p-4 rounded-2xl border border-gray-100 bg-white shadow-sm">
-
-                    {/* Topo do Card: Ícone + Título + Status */}
+                  <div key={item.id} className="p-4 rounded-2xl border border-gray-100 bg-white shadow-sm">
                     <div className="flex justify-between items-start mb-3">
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        {item.type === "money" ? (
-                          <div className="p-2 bg-green-50 rounded-lg text-green-600">
-                            <Heart size={18} fill="currentColor" />
-                          </div>
-                        ) : (
-                          <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
-                            <Package size={18} />
-                          </div>
-                        )}
+                      <div className="flex items-center gap-3">
+                        {item.type === "money" ? <Heart size={18} className="text-green-500" fill="currentColor" /> : <Package size={18} className="text-blue-500" />}
                         <div>
-                          <p className="font-bold text-gray-900 text-sm sm:text-lg leading-tight">
-                            {item.type === "money" ? `Doação ${item.value}` : "Doação de Itens"}
-                          </p>
-                          <p className="text-[10px] sm:text-sm text-gray-400 font-medium">{item.date}</p>
+                          <p className="font-bold text-gray-900">{item.type === "money" ? `Doação ${item.value}` : "Doação de Itens"}</p>
+                          <p className="text-xs text-gray-400">{item.date}</p>
                         </div>
                       </div>
-
-                      {/* Badge de Status Unificado */}
-                      <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${item.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
-                        }`}>
-                        {item.status === 'confirmed' ? <CheckCircle2 size={10} /> : <Clock size={10} />}
+                      <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase ${item.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
                         {item.status === 'confirmed' ? 'Recebido' : 'Pendente'}
-                      </div>
+                      </span>
                     </div>
-
-                    {/* Conteúdo Dinâmico */}
-                    <div className="mt-2">
-                      {item.type === "items" && (
-                        /* Mostra a lista apenas se for doação de materiais */
-                        <OngMaterialDonationCard items={item.items!} />
-                      )}
-                      {
-                        
-                      }
-                    </div>
-
-                    {/* Rodapé: Botões de Ação */}
-                    <div className="mt-4 pt-3 border-t border-dashed border-gray-100 flex gap-2">
-                      <button className="flex-1 flex items-center justify-center gap-2 text-[10px] sm:text-xs font-bold text-[#4a1d7a] py-2 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
-                        <FileText size={14} /> Comprovante
-                      </button>
-
-                      {item.status === "pending" && (
-                        <button className="flex-1 text-[10px] sm:text-xs font-bold text-white py-2 bg-[#4a1d7a] rounded-lg shadow-sm hover:bg-[#3d1864] transition-colors">
-                          Confirmar
-                        </button>
-                      )}
+                    {item.type === "items" && item.items && <OngMaterialDonationCard items={item.items} />}
+                    <div className="mt-4 pt-3 border-t border-gray-50 flex gap-2">
+                      <button className="flex-1 py-2 bg-purple-50 text-[#4a1d7a] text-xs font-bold rounded-lg">Comprovante</button>
+                      {item.status === "pending" && <button className="flex-1 py-2 bg-[#4a1d7a] text-white text-xs font-bold rounded-lg">Confirmar</button>}
                     </div>
                   </div>
                 ))}
@@ -356,7 +308,6 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
           </div>
         )}
       </AnimatePresence>
-
 
       <AnimatePresence>
         {isReviewsOpen && (
@@ -373,31 +324,16 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
               </div>
               <div className="p-4 sm:p-6 max-h-[60vh] overflow-y-auto space-y-4">
                 {reviews.length > 0 ? reviews.map((r, index) => (
-                  <div key={r.id || r._id || `review-${index}`} className="p-4 rounded-2xl border border-gray-100 bg-gray-50/50">
+                  <div key={r.id || index} className="p-4 rounded-2xl border border-gray-100 bg-gray-50/50">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="font-bold text-[#4a1d7a]">
-                        {/* Mapeamento baseado no seu RatingsService:
-                           donor { user { name } }
-                        */}
-                        {r.donor?.user?.name || "Doador DoeCerto"}
-                      </span>
+                      <span className="font-bold text-[#4a1d7a]">{r.donor?.user?.name || "Doador"}</span>
                       <div className="flex">
                         {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            size={10}
-                            fill={i < (r.score || 0) ? "#facc15" : "transparent"}
-                            className={i < (r.score || 0) ? "text-yellow-400" : "text-gray-300"}
-                          />
+                          <Star key={i} size={10} fill={i < (r.score || 0) ? "#facc15" : "transparent"} className={i < (r.score || 0) ? "text-yellow-400" : "text-gray-300"} />
                         ))}
                       </div>
                     </div>
-                    <p className="text-sm text-gray-600 leading-relaxed italic">
-                      "{r.comment || "Sem comentário."}"
-                    </p>
-                    <p className="text-[10px] text-gray-400 mt-2 font-bold">
-                      {r.createdAt ? new Date(r.createdAt).toLocaleDateString('pt-BR') : "Data não disponível"}
-                    </p>
+                    <p className="text-sm text-gray-600 leading-relaxed italic">"{r.comment || "Sem comentário."}"</p>
                   </div>
                 )) : (
                   <div className="text-center py-12 text-gray-500">
