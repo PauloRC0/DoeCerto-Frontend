@@ -82,7 +82,6 @@ export default function HomePage() {
 
         const mapped: Ong[] = allOngsFromApi.map((ong: any) => {
           const rawPath = ong.avatarUrl || (ong.user && ong.user.avatarUrl);
-          // Extrai todos os nomes de categorias
           const cats = ong.categories?.map((c: any) => c.name) || [];
           
           return {
@@ -100,7 +99,6 @@ export default function HomePage() {
           combined.forEach(o => uniqueMap.set(o.id, o));
           const newList = Array.from(uniqueMap.values()) as Ong[];
 
-          // Mapeia todas as categorias únicas de todas as ONGs para o filtro
           const allCats = newList.flatMap(o => o.categories);
           const uniqueCats = Array.from(new Set(allCats)).sort();
           setAvailableCategories(uniqueCats);
@@ -116,7 +114,6 @@ export default function HomePage() {
 
   const filteredOngs = ongs.filter((ong) => {
     const matchesSearch = query === "" || ong.name.toLowerCase().includes(query.toLowerCase());
-    // Agora verifica se a categoria selecionada está presente no array de categorias da ONG
     const matchesCategory = selectedCategory === null || ong.categories.includes(selectedCategory);
     return matchesSearch && matchesCategory;
   });
@@ -267,11 +264,15 @@ export default function HomePage() {
                 <div className="p-3">
                   <h3 className="text-sm font-semibold truncate">{ong.name}</h3>
                   <div className="flex flex-wrap gap-1 mt-1">
-                    {ong.categories.map((cat, idx) => (
-                      <span key={idx} className="px-2 py-0.5 bg-purple-100 text-purple-700 text-[10px] font-medium rounded-full">
+                    
+                    {ong.categories.slice(0, 1).map((cat, idx) => (
+                      <span key={idx} className="px-2 py-0.5 bg-purple-50 text-purple-800 border border-purple-100 text-[10px] font-bold rounded-full truncate max-w-[120px]">
                         {cat}
                       </span>
                     ))}
+                    {ong.categories.length > 1 && (
+                      <span className="text-[10px] text-gray-400 font-medium self-center">+{ong.categories.length - 1}</span>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 text-gray-500 mt-2">
                     <FaMapMarkerAlt size={12} />
@@ -312,12 +313,15 @@ export default function HomePage() {
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold truncate">{ong.name}</h3>
                 <div className="flex flex-wrap gap-1 mt-1">
+                 
                   {ong.categories.slice(0, 2).map((cat, idx) => (
-                    <span key={idx} className="px-2 py-0.5 bg-purple-100 text-purple-700 text-[10px] rounded-full">
+                    <span key={idx} className="px-2 py-0.5 bg-purple-50 text-purple-800 border border-purple-100 text-[10px] font-bold rounded-full">
                       {cat}
                     </span>
                   ))}
-                  {ong.categories.length > 2 && <span className="text-[10px] text-gray-400">+{ong.categories.length - 2}</span>}
+                  {ong.categories.length > 2 && (
+                    <span className="text-[10px] text-gray-400 font-medium self-center">+{ong.categories.length - 2}</span>
+                  )}
                 </div>
                 <p className="text-xs text-gray-500 mt-2">{ong.distance}</p>
               </div>
