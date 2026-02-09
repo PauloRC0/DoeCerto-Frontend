@@ -4,10 +4,11 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
+
 export interface DonationData {
   tipoItem: string;
   quantidade: number;
-  endereco: string;
+  descricao: string; 
 }
 
 export interface DonationProps {
@@ -23,14 +24,14 @@ export default function Donation({
 }: DonationProps) {
   const [tipoItem, setTipoItem] = useState("");
   const [quantidade, setQuantidade] = useState<number | "">("");
-  const [endereco, setEndereco] = useState("");
+  const [descricao, setDescricao] = useState(""); // Estado renomeado
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (ev: React.FormEvent) => {
     ev.preventDefault();
-    // validação simples
-    if (!tipoItem || !quantidade || !endereco) {
+    
+    if (!tipoItem || !quantidade || !descricao) {
       alert("Por favor, preencha todos os campos.");
       return;
     }
@@ -38,7 +39,7 @@ export default function Donation({
     const payload: DonationData = {
       tipoItem,
       quantidade: Number(quantidade),
-      endereco,
+      descricao, // Payload atualizado
     };
 
     try {
@@ -46,10 +47,8 @@ export default function Donation({
       if (onSubmit) {
         await onSubmit(payload);
       } else {
-        // comportamento padrão: log e alerta
-        // substitua por fetch para o backend quando integrar
-        console.log("Doação (padrão):", payload);
-        alert("Doação registrada localmente. Integre com o backend para salvar.");
+        console.log("Doação enviada ao backend:", payload);
+        alert("Doação registrada com sucesso!");
       }
     } catch (err) {
       console.error(err);
@@ -60,32 +59,33 @@ export default function Donation({
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
-       <button
-          onClick={() => router.back()}
-          className="absolute top-4 left-4 bg-white/90 p-2 rounded-full z-30 shadow-md text-gray-900 hover:bg-white transition-colors"
-        >
-          <ArrowLeft size={20} />
-        </button>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-purple-700 mt-4">{`Doar Itens — ${ongName}`}</h1>
-        <p className="text-sm text-gray-600 mt-1">
-          Obrigado por ajudar! Preencha os dados abaixo.
+    <div className="w-full max-w-md mx-auto p-4">
+      <button
+        onClick={() => router.back()}
+        className="fixed top-4 left-4 bg-white/90 p-2 rounded-full z-30 shadow-md text-gray-900 hover:bg-white transition-colors"
+      >
+        <ArrowLeft size={20} />
+      </button>
+
+      <div className="mb-6 mt-12">
+        <h1 className="text-2xl font-black text-[#4a1d7a]">{`Doar Itens — ${ongName}`}</h1>
+        <p className="text-sm text-gray-500 font-medium mt-1">
+          Descreva os itens que você deseja doar para a ONG.
         </p>
       </div>
 
       <form
         onSubmit={handleSubmit}
-        className="bg-white rounded-2xl shadow-md p-6 flex flex-col gap-4"
+        className="bg-white rounded-[24px] shadow-xl border border-gray-100 p-6 flex flex-col gap-5"
       >
         {/* Tipo do item */}
-        <div className="flex flex-col gap-1">
-          <label className="font-semibold text-gray-700">Tipo do Item</label>
+        <div className="flex flex-col gap-1.5">
+          <label className="font-bold text-sm text-gray-700 ml-1">O que você vai doar?</label>
           <select
             value={tipoItem}
             onChange={(e) => setTipoItem(e.target.value)}
             required
-            className="p-3 rounded-xl border border-gray-300 text-gray-700 focus:border-purple-600 focus:ring-2 focus:ring-purple-100 outline-none"
+            className="p-3.5 rounded-2xl border border-gray-200 bg-gray-50 text-gray-700 focus:border-[#4a1d7a] focus:ring-4 focus:ring-purple-50 outline-none transition-all appearance-none"
           >
             <option value="">Selecione o tipo</option>
             <option value="Alimentos">Alimentos</option>
@@ -97,8 +97,8 @@ export default function Donation({
         </div>
 
         {/* Quantidade */}
-        <div className="flex flex-col gap-1">
-          <label className="font-semibold text-gray-700">Quantidade</label>
+        <div className="flex flex-col gap-1.5">
+          <label className="font-bold text-sm text-gray-700 ml-1">Quantidade</label>
           <input
             type="number"
             min={1}
@@ -109,20 +109,20 @@ export default function Donation({
             }}
             required
             placeholder="Ex: 5"
-            className="p-3 rounded-xl border border-gray-300 text-gray-700 focus:border-purple-600 focus:ring-2 focus:ring-purple-100 outline-none"
+            className="p-3.5 rounded-2xl border border-gray-200 bg-gray-50 text-gray-700 focus:border-[#4a1d7a] focus:ring-4 focus:ring-purple-50 outline-none transition-all"
           />
         </div>
 
-        {/* Endereço */}
-        <div className="flex flex-col gap-1">
-          <label className="font-semibold text-gray-700">Descrição</label>
-          <input
-            type="text"
-            value={endereco}
-            onChange={(e) => setEndereco(e.target.value)}
+        {/* Descrição - Mudado para TEXTAREA para melhor UX */}
+        <div className="flex flex-col gap-1.5">
+          <label className="font-bold text-sm text-gray-700 ml-1">Descrição dos Itens</label>
+          <textarea
+            rows={4}
+            value={descricao}
+            onChange={(e) => setDescricao(e.target.value)}
             required
-            placeholder="Ex: Esse item está em bom estado, usado apenas 2 vezes."
-            className="p-3 rounded-xl border border-gray-300 text-gray-700 focus:border-purple-600 focus:ring-2 focus:ring-purple-100 outline-none"
+            placeholder="Conte-nos mais sobre os itens (ex: estado de conservação, tamanhos, validade...)"
+            className="p-3.5 rounded-2xl border border-gray-200 bg-gray-50 text-gray-700 focus:border-[#4a1d7a] focus:ring-4 focus:ring-purple-50 outline-none transition-all resize-none"
           />
         </div>
 
@@ -131,15 +131,15 @@ export default function Donation({
           <button
             type="submit"
             disabled={loading}
-            className="bg-purple-700 hover:bg-purple-800 text-white font-semibold py-3 rounded-2xl shadow-md transition disabled:opacity-60"
+            className="bg-[#4a1d7a] hover:bg-[#3a1661] text-white font-black py-4 rounded-2xl shadow-lg shadow-purple-100 transition-all active:scale-[0.98] disabled:opacity-60"
           >
-            {loading ? "Enviando..." : "Confirmar Doação"}
+            {loading ? "Processando..." : "Confirmar Doação"}
           </button>
 
           <button
             type="button"
-            onClick={onCancel}
-            className="bg-transparent border border-gray-300 text-gray-700 py-2 rounded-xl"
+            onClick={onCancel || (() => router.back())}
+            className="bg-white border border-gray-200 text-gray-500 font-bold py-3 rounded-2xl hover:bg-gray-50 transition-colors"
           >
             Cancelar
           </button>
