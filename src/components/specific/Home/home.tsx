@@ -2,19 +2,30 @@
 
 import Image from "next/image";
 import { useRef, useState, useEffect } from "react";
-import { FiSearch, FiMenu, FiX, FiUser, FiLogOut, FiGlobe } from "react-icons/fi";
+import { FiSearch, FiMenu, FiX, FiUser, FiLogOut, FiGlobe, FiStar, FiGift, FiCalendar, FiMapPin } from "react-icons/fi";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import DonateModal from "@/components/specific/DonateModal";
-import { api } from "@/services/api";
-import { OngsProfileService } from "@/services/ongs-profile.service";
+import ExpandedSection from "@/components/specific/Home/ExpandedSection";
+import { getMappedCatalogSections } from "@/services/categories.service";
+
 
 type Ong = {
   id: number;
   name: string;
   img: string;
-  distance: string;
-  categories: string[]; 
+  distance: string | number;
+  categories: string[];
+  donationCount?: number;
+  averageRating?: number;
+  numberOfRatings?: number;
+  formattedDate?: string;
+};
+
+type CatalogSection = {
+  type: string;
+  title: string;
+  items: Ong[];
 };
 
 const TAKE = 8;
@@ -52,9 +63,10 @@ export default function HomePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [userAvatar, setUserAvatar] = useState<string>("https://placehold.co/80x80/ddd/aaa.png");
 
-  const [ongs, setOngs] = useState<Ong[]>([]);
+  const [sections, setSections] = useState<CatalogSection[]>([]);
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [page, setPage] = useState(0);
+  const [expandedSection, setExpandedSection] = useState<{ type: string; title: string } | null>(null);
 
   useEffect(() => {
     const savedAvatar = localStorage.getItem('userAvatar');
@@ -72,50 +84,45 @@ export default function HomePage() {
   }, [isMenuOpen]);
 
   useEffect(() => {
-    async function loadOngs() {
+    async function fetchSections() {
       try {
-        const res = await api<any>(`/catalog?offset=${page * TAKE}&limit=${TAKE}`);
-        const sections = res.data;
-        if (!sections || !Array.isArray(sections)) return;
-
-        const allOngsFromApi = sections.flatMap((section: any) => section.items || []);
-
-        const mapped: Ong[] = allOngsFromApi.map((ong: any) => {
-          const rawPath = ong.avatarUrl || (ong.user && ong.user.avatarUrl);
-          const cats = ong.categories?.map((c: any) => c.name) || [];
-          
-          return {
-            id: ong.userId || ong.id,
-            name: ong.name || (ong.user && ong.user.name) || "ONG sem nome",
-            img: rawPath ? OngsProfileService._formatImageUrl(rawPath) : "",
-            distance: "7.2 km",
-            categories: cats.length > 0 ? cats : ["Outros"],
-          };
+        const mappedSections: CatalogSection[] = await getMappedCatalogSections({ offset: page * TAKE, limit: TAKE });
+        setSections((prev) => {
+          const allSections: CatalogSection[] = [...prev];
+          mappedSections.forEach((newSection) => {
+            const idx = allSections.findIndex((s) => s.type === newSection.type);
+            if (idx >= 0) {
+              const existingIds = new Set(allSections[idx].items.map((o) => o.id));
+              const mergedItems = [...allSections[idx].items];
+              newSection.items.forEach((o) => {
+                if (!existingIds.has(o.id)) mergedItems.push(o);
+              });
+              allSections[idx].items = mergedItems;
+            } else {
+              allSections.push(newSection);
+            }
+          });
+          return allSections;
         });
-
-        setOngs((prev) => {
-          const combined = [...prev, ...mapped];
-          const uniqueMap = new Map();
-          combined.forEach(o => uniqueMap.set(o.id, o));
-          const newList = Array.from(uniqueMap.values()) as Ong[];
-
-          const allCats = newList.flatMap(o => o.categories);
-          const uniqueCats = Array.from(new Set(allCats)).sort();
-          setAvailableCategories(uniqueCats);
-
-          return newList;
-        });
+        const allOngs = mappedSections.flatMap((s) => s.items);
+        const allCats = allOngs.flatMap((o) => o.categories);
+        const uniqueCats = Array.from(new Set(allCats)).sort();
+        setAvailableCategories(uniqueCats);
       } catch (err) {
-        console.error("Erro ao buscar ONGs:", err);
+        console.error("Erro ao buscar catálogo:", err);
       }
     }
-    loadOngs();
+    fetchSections();
   }, [page]);
 
-  const filteredOngs = ongs.filter((ong) => {
-    const matchesSearch = query === "" || ong.name.toLowerCase().includes(query.toLowerCase());
-    const matchesCategory = selectedCategory === null || ong.categories.includes(selectedCategory);
-    return matchesSearch && matchesCategory;
+  // Filtra ONGs de todas as seções
+  const filteredSections = sections.map((section) => {
+    const filteredItems = section.items.filter((ong) => {
+      const matchesSearch = query === "" || ong.name.toLowerCase().includes(query.toLowerCase());
+      const matchesCategory = selectedCategory === null || ong.categories.includes(selectedCategory);
+      return matchesSearch && matchesCategory;
+    });
+    return { ...section, items: filteredItems };
   });
 
   function openDonateModal(ongId: number) {
@@ -125,7 +132,12 @@ export default function HomePage() {
 
   function goToDonateItems() {
     if (!selectedOng) return;
-    const ong = filteredOngs.find((o) => o.id === selectedOng);
+    // Procura ONG em todas as seções filtradas
+    let ong: Ong | undefined;
+    for (const section of filteredSections) {
+      ong = section.items.find((o) => o.id === selectedOng);
+      if (ong) break;
+    }
     if (!ong) return;
     router.push(`/donation?ongId=${selectedOng}&ong=${encodeURIComponent(ong.name)}`);
   }
@@ -138,7 +150,8 @@ export default function HomePage() {
 
   async function handleLogout() {
     try {
-      await api("/auth/logout", { method: "POST" });
+      // Usa fetch para logout, pois api não está importada
+      await fetch("/auth/logout", { method: "POST" });
       document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       localStorage.clear();
       router.push("/login");
@@ -236,117 +249,141 @@ export default function HomePage() {
         </div>
       </div>
 
-      {(query || selectedCategory) && (
-        <div className="px-5 mt-3">
-          <p className="text-sm text-gray-600">
-            {filteredOngs.length} {filteredOngs.length === 1 ? 'ONG encontrada' : 'ONGs encontradas'}
-            {query && ` para "${query}"`}
-            {selectedCategory && ` em ${selectedCategory}`}
-          </p>
-        </div>
-      )}
-
-      <section className="mt-5 px-5">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-gray-800">ONGs recomendadas</h2>
-        </div>
-        <div className="flex gap-4 overflow-x-auto pb-3 no-scrollbar">
-          {filteredOngs.length === 0 ? (
-            <div className="w-full text-center py-8 text-gray-500">Nenhuma ONG encontrada</div>
-          ) : (
-            filteredOngs.map((ong) => (
-              <div
-                key={`carousel-${ong.id}`}
-                onClick={() => router.push(`/ong-public-profile?id=${ong.id}`)}
-                className="min-w-[220px] bg-white rounded-2xl shadow-md overflow-hidden cursor-pointer"
-              >
-                <OngLogo src={ong.img} alt={ong.name} className="w-full h-[170px]" />
-                <div className="p-3">
-                  <h3 className="text-sm font-semibold truncate">{ong.name}</h3>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    
-                    {ong.categories.slice(0, 1).map((cat, idx) => (
-                      <span key={idx} className="px-2 py-0.5 bg-purple-50 text-purple-800 border border-purple-100 text-[10px] font-bold rounded-full truncate max-w-[120px]">
-                        {cat}
-                      </span>
-                    ))}
-                    {ong.categories.length > 1 && (
-                      <span className="text-[10px] text-gray-400 font-medium self-center">+{ong.categories.length - 1}</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-500 mt-2">
-                    <FaMapMarkerAlt size={12} />
-                    <span className="text-xs">{ong.distance}</span>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openDonateModal(ong.id);
-                    }}
-                    className="mt-3 w-full bg-[#6B21A8] text-white py-1.5 rounded-lg text-sm font-semibold hover:bg-purple-800 transition"
-                  >
-                    Doar
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </section>
-
-      <section className="mt-6 px-5 mb-10 space-y-4">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800">Mais próximas de você</h2>
-        {filteredOngs.length === 0 ? (
-          <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
-            <p className="text-gray-600 text-lg">Nenhuma ONG encontrada</p>
+      {(query || selectedCategory) && (() => {
+        // Calcula ONGs únicas
+        const uniqueOngIds = new Set<number>();
+        filteredSections.forEach(section => {
+          section.items.forEach(ong => uniqueOngIds.add(ong.id));
+        });
+        const uniqueCount = uniqueOngIds.size;
+        return (
+          <div className="px-5 mt-3">
+            <p className="text-sm text-gray-600">
+              {uniqueCount} {uniqueCount === 1 ? 'ONG encontrada' : 'ONGs encontradas'}
+              {query && ` para "${query}"`}
+              {selectedCategory && ` em ${selectedCategory}`}
+            </p>
           </div>
-        ) : (
-          filteredOngs.map((ong) => (
-            <div
-              key={`list-${ong.id}`}
-              onClick={() => router.push(`/ong-public-profile?id=${ong.id}`)}
-              className="flex items-center gap-4 bg-white rounded-2xl shadow-md p-4 cursor-pointer hover:shadow-lg transition"
-            >
-              <div className="w-24 h-24 rounded-xl overflow-hidden shrink-0">
-                <OngLogo src={ong.img} alt={ong.name} className="w-full h-full" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold truncate">{ong.name}</h3>
-                <div className="flex flex-wrap gap-1 mt-1">
-                 
-                  {ong.categories.slice(0, 2).map((cat, idx) => (
-                    <span key={idx} className="px-2 py-0.5 bg-purple-50 text-purple-800 border border-purple-100 text-[10px] font-bold rounded-full">
-                      {cat}
-                    </span>
-                  ))}
-                  {ong.categories.length > 2 && (
-                    <span className="text-[10px] text-gray-400 font-medium self-center">+{ong.categories.length - 2}</span>
-                  )}
-                </div>
-                <p className="text-xs text-gray-500 mt-2">{ong.distance}</p>
-              </div>
+        );
+      })()}
+
+      {/* Carrosséis para cada seção */}
+      {expandedSection ? (
+        <ExpandedSection
+          type={expandedSection.type}
+          title={expandedSection.title}
+          onBack={() => setExpandedSection(null)}
+        />
+      ) : (
+        filteredSections.map((section, idx) => (
+          <section key={section.type} className={`mt-5 px-5 ${idx === filteredSections.length - 1 ? 'mb-10' : ''}`}>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold text-gray-800">{section.title}</h2>
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openDonateModal(ong.id);
-                }}
-                className="bg-[#6B21A8] text-white px-4 py-2 rounded-lg text-sm font-semibold shrink-0 shadow-sm"
+                className="text-purple-700 text-sm font-semibold px-3 py-1 rounded-full border border-purple-200 bg-purple-50 hover:bg-purple-100 transition"
+                onClick={() => setExpandedSection({ type: section.type, title: section.title })}
               >
-                Doar
+                Ver mais
               </button>
             </div>
-          ))
-        )}
-      </section>
+            {section.items.length === 0 ? (
+              <div className="w-full text-center py-8 text-gray-500">Nenhuma ONG encontrada</div>
+            ) : (
+              <div className="flex gap-4 overflow-x-auto pb-3 no-scrollbar">
+                {section.items.map((ong) => (
+                  <div
+                    key={`carousel-${section.type}-${ong.id}`}
+                    onClick={() => router.push(`/ong-public-profile?id=${ong.id}`)}
+                    className="min-w-[220px] bg-white rounded-2xl shadow-md overflow-hidden cursor-pointer"
+                  >
+                    <OngLogo src={ong.img} alt={ong.name} className="w-full h-[170px]" />
+                    <div className="p-3">
+                      <h3 className="text-sm font-semibold truncate">{ong.name}</h3>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {ong.categories.slice(0, 2).map((cat, idx) => (
+                          <span key={idx} className="px-2 py-0.5 bg-purple-50 text-purple-800 border border-purple-100 text-[10px] font-bold rounded-full truncate max-w-[120px]">
+                            {cat}
+                          </span>
+                        ))}
+                        {ong.categories.length > 2 && (
+                          <span className="text-[10px] text-gray-400 font-medium self-center">+{ong.categories.length - 2}</span>
+                        )}
+                      </div>
+                      {/* Campo personalizado por tipo de seção */}
+                      <div className="flex items-center gap-2 text-gray-500 mt-2">
+                        {section.type === "nearby" && (
+                          <>
+                            <FiMapPin size={14} />
+                            <span className="text-xs">
+                              {(() => {
+                                const dist = ong.distance;
+                                if (typeof dist === "number") {
+                                  return `${dist.toFixed(2)} km`;
+                                }
+                                // Try to parse string to number if possible
+                                if (typeof dist === "string") {
+                                  const parsed = Number(dist);
+                                  if (!isNaN(parsed)) {
+                                    return `${parsed.toFixed(2)} km`;
+                                  }
+                                  return dist;
+                                }
+                                return dist ?? "";
+                              })()}
+                            </span>
+                          </>
+                        )}
+                        {section.type === "topRated" && (
+                          <>
+                            <FiStar size={14} className="text-yellow-500" />
+                            <span className="text-xs font-semibold">{ong.averageRating ?? 0} ({ong.numberOfRatings ?? 0} avaliações)</span>
+                          </>
+                        )}
+                        {section.type === "newest" || section.type === "oldest" ? (
+                          <>
+                            <FiCalendar size={14} />
+                            <span className="text-xs">{ong.formattedDate ?? ""}</span>
+                          </>
+                        ) : null}
+                        {section.type === "mostDonated" && (
+                          <>
+                            <FiGift size={14} />
+                            <span className="text-xs">{ong.donationCount ?? 0} doações recebidas</span>
+                          </>
+                        )}
+                        {section.type === "leastDonated" && (
+                          <>
+                            <FiGift size={14} />
+                            <span className="text-xs">{ong.donationCount ?? 0} doações recebidas</span>
+                          </>
+                        )}
+                        {/* Fallback para outros tipos */}
+                        {!["nearby","topRated","newest","oldest","mostDonated","leastDonated"].includes(section.type) && (
+                          <>
+                            <FaMapMarkerAlt size={12} />
+                            <span className="text-xs">{ong.distance}</span>
+                          </>
+                        )}
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openDonateModal(ong.id);
+                        }}
+                        className="mt-3 w-full bg-[#6B21A8] text-white py-1.5 rounded-lg text-sm font-semibold hover:bg-purple-800 transition"
+                      >
+                        Doar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        ))
+      )}
 
-      <div className="px-5 pb-10">
-        <button
-          onClick={() => setPage((p) => p + 1)}
-          className="w-full bg-white border border-purple-100 rounded-xl py-3 shadow-sm text-purple-700 font-semibold active:bg-purple-50 transition"
-        >
-          Carregar mais ONGs
-        </button>
-      </div>
+      {/* Removido: paginação na página principal. */}
 
       {isModalOpen && (
         <DonateModal

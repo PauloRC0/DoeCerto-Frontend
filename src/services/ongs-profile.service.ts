@@ -32,7 +32,9 @@ async getPublicProfile(ongId: number) {
       description: source.about || source.bio || "ONG verificada.",
       phone: source.contactNumber || source.phone || "Não informado",
       instagram: source.websiteUrl || source.instagram || "Não informado",
-      address: source.address || "Endereço não informado",
+      address: typeof source.address === 'object' && source.address !== null
+        ? `${source.address.street || ''}, ${source.address.number || ''}${source.address.complement ? ' ' + source.address.complement : ''} - ${source.address.neighborhood || ''}, ${source.address.city || ''} - ${source.address.state || ''}, ${source.address.zipCode || ''}`
+        : (source.address || "Endereço não informado"),
       distance: "—",
       years: this._calculateYears(source.createdAt || new Date()),
       numberOfRatings: source.numberOfRatings || source.rating?.count || 0,
