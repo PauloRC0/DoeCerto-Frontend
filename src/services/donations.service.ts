@@ -1,5 +1,8 @@
 import { api } from './api';
 
+// 1. Pegamos a URL do .env aqui para usar no mapeamento
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
 export interface DonationService {
   id: number;
   type: 'monetary' | 'material';
@@ -17,10 +20,6 @@ export interface DonationService {
 }
 
 export const DonationService = {
-  /**
-   * Busca as doações recebidas pela ONG logada
-   * Mapeado para converter os campos do backend para o padrão do frontend
-   */
   async getReceivedDonations(params?: { type?: 'monetary' | 'material'; skip?: number; take?: number }) {
     try {
       const queryString = params && Object.keys(params).length > 0
@@ -29,28 +28,36 @@ export const DonationService = {
 
       const response = await api<any>(`/donations/me/received${queryString}`);
       
-      // Conforme seu console: response.data (corpo) -> data (objeto) -> data (array)
       const rawArray = response?.data?.data?.data || response?.data?.data || [];
       
       if (!Array.isArray(rawArray)) return [];
 
-      // Mapeamento de propriedades (Backend -> Frontend)
-      return rawArray.map((item: any) => ({
-        id: item.id,
-        // Converte 'monetary'/'material' e o status para o formato esperado pelo componente
-        type: item.donationType?.toLowerCase() || 'material',
-        status: item.donationStatus?.toUpperCase() || 'PENDING',
-        amount: item.monetaryAmount,
-        materialDescription: item.materialDescription,
-        materialQuantity: item.materialQuantity,
-        proofUrl: item.proofUrl,
-        createdAt: item.createdAt,
-        donor: {
-          user: {
-            name: item.donor?.user?.name || "Doador Anônimo"
-          }
+      return rawArray.map((item: any) => {
+        // CORREÇÃO DAS BARRAS: Transforma \ em / para o navegador entender
+        let formattedProofUrl = item.proofOfPaymentUrl || item.proofUrl;
+        
+        if (formattedProofUrl && !formattedProofUrl.startsWith('http')) {
+          // Troca \ por / e limpa barras duplas iniciais
+          const cleanPath = formattedProofUrl.replace(/\\/g, '/').replace(/^\/+/, '');
+          formattedProofUrl = `${API_URL}/${cleanPath}`;
         }
-      })) as DonationService[];
+
+        return {
+          id: item.id,
+          type: item.donationType?.toLowerCase() || 'material',
+          status: item.donationStatus?.toUpperCase() || 'PENDING',
+          amount: item.monetaryAmount,
+          materialDescription: item.materialDescription,
+          materialQuantity: item.materialQuantity,
+          proofUrl: formattedProofUrl, // Agora a URL já vai completa e corrigida para o componente
+          createdAt: item.createdAt,
+          donor: {
+            user: {
+              name: item.donor?.user?.name || "Doador Anônimo"
+            }
+          }
+        };
+      }) as DonationService[];
 
     } catch (error) {
       console.error("Erro no DonationService.getReceivedDonations:", error);
@@ -73,7 +80,7 @@ export const DonationService = {
   },
 
   async getDonationById(id: number) {
-    const { data } = await api<DonationService>(`/donations/${id}`);
+    const { data } = await api<any>(`/donations/${id}`);
     return data;
   }
 };
