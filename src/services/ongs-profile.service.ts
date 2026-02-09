@@ -16,7 +16,7 @@ export const OngsProfileService = {
     return diff <= 0 ? "Novo" : `${diff} ${diff === 1 ? 'ano' : 'anos'}`;
   },
 
-  async getPublicProfile(ongId: number) {
+async getPublicProfile(ongId: number) {
     const [resProfile, resReviews] = await Promise.all([
       api<any>(`/ongs/${ongId}/profile`),
       api<any>(`/ongs/${ongId}/ratings`)
@@ -38,6 +38,8 @@ export const OngsProfileService = {
       numberOfRatings: source.numberOfRatings || source.rating?.count || 0,
       rating: Number(source.averageRating || source.rating?.average) || 0,
       donations: source.receivedDonations || 0,
+      // ✅ ADICIONE ESTA LINHA ABAIXO:
+      categories: source.categories || [], 
       reviews: resReviews.data || []
     };
   },
