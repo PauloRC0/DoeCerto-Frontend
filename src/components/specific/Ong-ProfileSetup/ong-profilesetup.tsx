@@ -22,6 +22,7 @@ import { ImageUploader } from "@/components/ui/image-uploader";
 import { BankAccountService } from "@/services/bank-account.service";
 import { OngsProfileService } from "@/services/ongs-profile.service";
 import { OngSetupService } from "@/services/ongSetup.service";
+import { WishlistService, WishlistItem } from "@/services/wishlist.service";
 
 export default function OngSetupProfile() {
   const router = useRouter();
@@ -43,8 +44,10 @@ export default function OngSetupProfile() {
   const [logoPreview, setLogoPreview] = useState("");
   const [bannerPreview, setBannerPreview] = useState("");
 
-  const [items, setItems] = useState<string[]>([]);
+  // No topo do componente OngSetupProfile
   const [newItem, setNewItem] = useState("");
+  const [items, setItems] = useState<any[]>([]);
+  const [ongId, setOngId] = useState<number | null>(null);
 
   const [bankName, setBankName] = useState("");
   const [agencyNumber, setAgencyNumber] = useState("");
@@ -55,22 +58,34 @@ export default function OngSetupProfile() {
   const accountTypeOptions = ["Corrente", "Poupança", "Aplicação"];
 
 
+
+
   useEffect(() => {
     async function loadInitialData() {
       try {
+        setInitialLoading(true);
+
         // 1. Carrega categorias do banco
         const categories = await OngSetupService.getCategories();
         setAvailableCategories(categories || []);
 
-        // 2. Busca perfil atualizado (Usando o serviço que limpa as URLs)
+        // 2. Busca perfil atualizado
         const profile = await OngsProfileService.getMyProfile();
 
         if (profile) {
+          setOngId(profile.id); // Guardamos o ID para operações na Wishlist
           setOngName(profile.name || "Minha ONG");
-          // Backend mapeia bio -> about
           setBio(profile.about || "");
           setPhone(profile.contactNumber || "");
           setInstagram(profile.websiteUrl || "");
+
+          // Busca os itens da Wishlist (Itens que aceitamos)
+          try {
+            const wishlistData = await WishlistService.getItems(profile.id);
+            setItems(wishlistData || []);
+          } catch (err) {
+            console.error("Erro ao carregar wishlist:", err);
+          }
 
           // Tratamento de Endereço (Cidade - UF)
           if (profile.address) {
@@ -80,7 +95,7 @@ export default function OngSetupProfile() {
             setAddress(addr);
           }
 
-          // Anos de atuação baseado no createdAt
+          // Anos de atuação
           if (profile.createdAt) {
             const diff = new Date().getFullYear() - new Date(profile.createdAt).getFullYear();
             setYears(diff.toString());
@@ -93,6 +108,8 @@ export default function OngSetupProfile() {
             setSelectedCategoryIds(profile.categories.map((c: any) => c.id));
           }
         }
+
+        // 3. Carrega dados bancários
         const bankData = await BankAccountService.getMyAccount();
         if (bankData) {
           setBankName(bankData.bankName || "");
@@ -101,6 +118,7 @@ export default function OngSetupProfile() {
           setPixKey(bankData.pixKey || "");
           setAccountType(bankData.accountType || "Corrente");
         }
+
       } catch (error) {
         console.error("Erro ao carregar dados iniciais:", error);
       } finally {
@@ -126,13 +144,34 @@ export default function OngSetupProfile() {
     );
   };
 
-  const handleAddItems = () => {
-    if (!newItem.trim()) return;
-    const itemsToAdd = newItem.split(',').map(item => item.trim()).filter(Boolean);
-    setItems(prev => [...prev, ...itemsToAdd]);
-    setNewItem("");
+  const handleAddItems = async () => {
+    if (!newItem.trim() || !ongId) return;
+
+    try {
+      // Chama o POST para a API
+      const addedItem = await WishlistService.addItem(ongId, newItem.trim(), 1);
+
+      // Atualiza o estado com o objeto completo (incluindo o ID do banco)
+      setItems(prev => [...prev, addedItem]);
+      setNewItem("");
+    } catch (error) {
+      alert("Erro ao salvar item na lista de desejos.");
+    }
   };
 
+  const handleDeleteItem = async (itemId: number) => {
+    if (!ongId) return;
+
+    try {
+      // Chama o DELETE para a API
+      await WishlistService.deleteItem(ongId, itemId);
+
+      // Remove do estado local para atualizar a tela
+      setItems(prev => prev.filter(item => item.id !== itemId));
+    } catch (error) {
+      alert("Erro ao remover item do servidor.");
+    }
+  };
   const handleFinalize = async () => {
     setLoading(true);
     try {
@@ -349,14 +388,19 @@ export default function OngSetupProfile() {
                 <Plus size={20} />
               </button>
             </div>
+
             <div className="flex flex-wrap gap-2">
-              {items.map((item, i) => (
-                <span key={i} className="flex items-center gap-2 bg-purple-50 text-[#4a1d7a] px-3 py-1.5 rounded-full text-[11px] font-black border border-purple-100">
-                  {item}
+              {items.map((item) => (
+                <span
+                  key={item.id}
+                  className="flex items-center gap-2 bg-purple-50 text-[#4a1d7a] px-3 py-1.5 rounded-full text-[11px] font-black border border-purple-100"
+                >
+                  {item.description}
+
                   <Trash2
                     size={12}
-                    className="cursor-pointer text-red-400"
-                    onClick={() => setItems(items.filter((_, idx) => idx !== i))}
+                    className="cursor-pointer text-red-400 hover:text-red-600 transition-colors"
+                    onClick={() => handleDeleteItem(item.id)}
                   />
                 </span>
               ))}
