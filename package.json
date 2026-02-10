@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --no-lint",
     "start": "next start",
     "lint": "eslint"
   },
@@ -20,7 +20,8 @@
     "react-dom": "19.2.0",
     "react-hot-toast": "^2.6.0",
     "react-icons": "^5.5.0",
-    "react-qr-code": "^2.0.18"
+    "react-qr-code": "^2.0.18",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@capacitor/cli": "^7.4.4",

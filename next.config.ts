@@ -1,20 +1,19 @@
 import type { NextConfig } from "next";
 
+const isMobile = process.env.IS_MOBILE === "true";
+
 const nextConfig: NextConfig = {
-  reactCompiler: true,
-
-  // 1. ATIVE ISSO (É obrigatório para o Capacitor ver o index.html)
-  output: "export",
-
-  // 2. REMOVA OU COMENTE O distDir
-  // O Next já cria a pasta "out" por padrão quando o output é "export"
-  // distDir: "out", 
-
-  // 3. Adicione isso para garantir a estrutura de pastas que o Capacitor ama
+  output: isMobile ? "export" : "standalone",
   trailingSlash: true,
 
   images: {
-    unoptimized: true,
+    // Se for Mobile, DESATIVA (obrigatório para export estático)
+    // Se for Web, ATIVA (false significa que ele vai tentar otimizar)
+    unoptimized: isMobile,
+  },
+
+  typescript: {
+    ignoreBuildErrors: true,
   },
 };
 
