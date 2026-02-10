@@ -8,13 +8,14 @@ import { useRouter } from "next/navigation";
 import DonateModal from "@/components/specific/DonateModal";
 import { api } from "@/services/api";
 import { OngsProfileService } from "@/services/ongs-profile.service";
+import { DonorService } from "@/services/donor.service";
 
 type Ong = {
   id: number;
   name: string;
   img: string;
   distance: string;
-  categories: string[]; 
+  categories: string[];
 };
 
 const TAKE = 8;
@@ -57,10 +58,29 @@ export default function HomePage() {
   const [page, setPage] = useState(0);
 
   useEffect(() => {
-    const savedAvatar = localStorage.getItem('userAvatar');
-    if (savedAvatar) setUserAvatar(savedAvatar);
-  }, []);
+    async function loadUserProfile() {
+      try {
+        const userRole = localStorage.getItem("userRole")?.toUpperCase();
+        let profile;
 
+        if (userRole === "ONG") {
+          profile = await OngsProfileService.getMyProfile();
+        } else {
+          profile = await DonorService.getMyProfile();
+        }
+
+        if (profile?.avatarUrl) {
+          const formattedUrl = OngsProfileService._formatImageUrl(profile.avatarUrl);
+          setUserAvatar(formattedUrl);
+        }
+      } catch (err) {
+        console.error("Erro ao carregar avatar:", err);
+        const saved = localStorage.getItem('userAvatar');
+        if (saved) setUserAvatar(saved);
+      }
+    }
+    loadUserProfile();
+  }, []);
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -83,7 +103,7 @@ export default function HomePage() {
         const mapped: Ong[] = allOngsFromApi.map((ong: any) => {
           const rawPath = ong.avatarUrl || (ong.user && ong.user.avatarUrl);
           const cats = ong.categories?.map((c: any) => c.name) || [];
-          
+
           return {
             id: ong.userId || ong.id,
             name: ong.name || (ong.user && ong.user.name) || "ONG sem nome",
@@ -139,14 +159,15 @@ export default function HomePage() {
   async function handleLogout() {
     try {
       await api("/auth/logout", { method: "POST" });
+    } catch (error) {
+      console.error("Erro ao deslogar no servidor:", error);
+    } finally {
       document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       localStorage.clear();
-      router.push("/login");
-    } catch (error) {
+      setUserAvatar("https://placehold.co/80x80/ddd/aaa.png");
       router.push("/login");
     }
   }
-
   function goToProfile() {
     const userRole = localStorage.getItem("userRole") || "";
     if (userRole.toUpperCase() === "ONG") {
@@ -163,20 +184,21 @@ export default function HomePage() {
         <Image src="/logo_roxa.svg" alt="DoeCerto" width={120} height={120} priority />
 
         <div className="flex items-center gap-3 relative" ref={menuRef}>
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="p-2 rounded-md hover:bg-gray-100 active:scale-95 transition"
-          >
-            <FiMenu size={20} />
-          </button>
+          {/* Removido o botão de hambúrguer daqui */}
 
           <div
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="w-9 h-9 rounded-full bg-gray-200 overflow-hidden cursor-pointer hover:ring-2 hover:ring-purple-500 transition"
+            className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden cursor-pointer ring-2 ring-white shadow-sm hover:ring-purple-500 transition-all"
           >
-            <img src={userAvatar} alt="avatar" className="w-full h-full object-cover" />
+            <img
+              src={userAvatar}
+              alt="avatar"
+              className="w-full h-full object-cover"
+              onError={(e) => (e.currentTarget.src = "https://placehold.co/80x80/ddd/aaa.png")}
+            />
           </div>
 
+          {/* O menu dropdown continua funcionando ao clicar na imagem */}
           {isMenuOpen && (
             <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50 animate-fadeIn">
               <button
@@ -264,7 +286,7 @@ export default function HomePage() {
                 <div className="p-3">
                   <h3 className="text-sm font-semibold truncate">{ong.name}</h3>
                   <div className="flex flex-wrap gap-1 mt-1">
-                    
+
                     {ong.categories.slice(0, 1).map((cat, idx) => (
                       <span key={idx} className="px-2 py-0.5 bg-purple-50 text-purple-800 border border-purple-100 text-[10px] font-bold rounded-full truncate max-w-[120px]">
                         {cat}
@@ -313,7 +335,7 @@ export default function HomePage() {
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold truncate">{ong.name}</h3>
                 <div className="flex flex-wrap gap-1 mt-1">
-                 
+
                   {ong.categories.slice(0, 2).map((cat, idx) => (
                     <span key={idx} className="px-2 py-0.5 bg-purple-50 text-purple-800 border border-purple-100 text-[10px] font-bold rounded-full">
                       {cat}
