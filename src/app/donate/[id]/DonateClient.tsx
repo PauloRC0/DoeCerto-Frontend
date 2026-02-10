@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
+import { getOngById } from "@/services/ongs.service";
 
 export default function DonateClient({ id }: { id: string }) {
   const [ong, setOng] = useState<any>(null);
   const [option, setOption] = useState<"items" | "money" | null>(null);
 
   useEffect(() => {
-    fetch(`http://localhost:3001/ongs/${id}`)
-      .then((res) => res.json())
+    getOngById(id)
       .then((data) => {
         console.log("ONG RECEBIDA:", data);
         setOng(data);

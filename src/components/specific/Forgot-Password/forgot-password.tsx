@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import { ArrowLeft } from "lucide-react";
+import { forgotPassword } from "@/services/auth.service";
 
 export default function ForgotPasswordComponent() {
   const router = useRouter();
@@ -22,16 +23,7 @@ export default function ForgotPasswordComponent() {
 
     setLoading(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/forgot-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim() }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || "Erro ao solicitar recuperação");
-      }
+      await forgotPassword(email);
 
       // Mensagem simples conforme solicitado
       toast.success("E-mail enviado! Verifique sua caixa de entrada e spam para redefinir sua senha", {

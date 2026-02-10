@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
+import { resetPassword } from "@/services/auth.service";
 
 
 function ResetPasswordForm() {
@@ -36,29 +37,18 @@ function ResetPasswordForm() {
 
     setLoading(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/reset-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          token, 
-          newPassword 
-        }),
+      await resetPassword(token!, newPassword);
+
+      toast.success("Senha redefinida com sucesso!", {
+        duration: 6000,
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Erro ao atualizar senha.");
-      }
-
-      toast.success("Senha atualizada com sucesso!", { duration: 4000 });
-      
       setTimeout(() => {
         router.push("/login");
-      }, 3000);
+      }, 4000);
 
     } catch (err: any) {
-      toast.error(err.message || "Erro ao conectar com o servidor.");
+      toast.error(err.message || "Erro ao redefinir senha");
     } finally {
       setLoading(false);
     }
