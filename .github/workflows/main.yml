@@ -5,38 +5,42 @@ on:
     branches:
       - distributed-systems
   release:
-    types: [published] # Dispara exatamente quando você clicar em "Publish"
+    types: [published, created] # Garante o disparo na criação da release
 
 jobs:
-  # --- JOB WEB ---
+  # --- JOB WEB (DOCKER) ---
   build-web-ssr:
     name: Build Web
     runs-on: ubuntu-latest
-    # SÓ roda se for push. Se for release, ele pula fora.
     if: github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/build-push-action@v5
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./frontend/Dockerfile
+          # Se o seu Dockerfile está dentro de frontend/, o caminho abaixo está correto:
+          file: ./frontend/Dockerfile 
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/doecerto-front:latest
           build-args: |
             NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
             IS_MOBILE=false
 
-  # --- JOB MOBILE (O QUE VOCÊ QUER) ---
+  # --- JOB MOBILE (APK) ---
   build-mobile-apk:
     name: Build Signed APK
     runs-on: ubuntu-latest
-    # ESTA REGRA GARANTE: Só roda no evento de release
     if: github.event_name == 'release'
     steps:
       - uses: actions/checkout@v4
@@ -70,6 +74,7 @@ jobs:
           java-version: '17'
 
       - name: Decode Keystore
+        # O arquivo será decodificado diretamente onde o Gradle espera
         run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > frontend/android/app/doecerto.keystore
 
       - name: Build Signed APK
@@ -86,4 +91,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: doecerto-mobile-release
+          # Busca qualquer APK gerado na pasta de release
           path: frontend/android/app/build/outputs/apk/release/*.apk
