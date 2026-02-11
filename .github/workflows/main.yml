@@ -5,10 +5,10 @@ on:
     branches:
       - distributed-systems
   release:
-    types: [published, created] # Garante o disparo na criação da release
+    types: [published, created]
 
 jobs:
-  # --- JOB WEB (DOCKER) ---
+  # --- JOB 1: WEB SSR (DOCKER) ---
   build-web-ssr:
     name: Build Web
     runs-on: ubuntu-latest
@@ -28,16 +28,16 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
-          context: .
-          # Se o seu Dockerfile está dentro de frontend/, o caminho abaixo está correto:
-          file: ./frontend/Dockerfile 
+          # MUDANÇA CHAVE: O contexto agora é a pasta frontend
+          context: ./frontend
+          file: ./frontend/Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/doecerto-front:latest
           build-args: |
             NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
             IS_MOBILE=false
 
-  # --- JOB MOBILE (APK) ---
+  # --- JOB 2: MOBILE APK (ASSINADO) ---
   build-mobile-apk:
     name: Build Signed APK
     runs-on: ubuntu-latest
@@ -74,7 +74,6 @@ jobs:
           java-version: '17'
 
       - name: Decode Keystore
-        # O arquivo será decodificado diretamente onde o Gradle espera
         run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > frontend/android/app/doecerto.keystore
 
       - name: Build Signed APK
@@ -91,5 +90,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: doecerto-mobile-release
-          # Busca qualquer APK gerado na pasta de release
           path: frontend/android/app/build/outputs/apk/release/*.apk
