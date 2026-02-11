@@ -1,6 +1,6 @@
 import { Preferences } from '@capacitor/preferences';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://doecerto.eastus2.cloudapp.azure.com/api";
+const API_URL = "https://doecerto.eastus2.cloudapp.azure.com/api";
 
 export async function api<T>(
   endpoint: string,
