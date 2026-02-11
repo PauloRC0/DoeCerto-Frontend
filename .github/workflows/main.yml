@@ -5,10 +5,10 @@ on:
     branches:
       - distributed-systems
   release:
-    types: [published, created] # Adicionado 'published' para garantir o disparo
+    types: [published, created]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 jobs:
@@ -16,9 +16,7 @@ jobs:
   build-web-ssr:
     name: Build Web and Scan
     runs-on: ubuntu-latest
-    # Removido o IF restritivo para permitir que a Release também dispare o build se necessário
-    # Ou mantemos apenas para push na branch
-    if: github.event_name == 'push' 
+    if: github.event_name == 'push'
     permissions:
       contents: read
     steps:
@@ -38,10 +36,10 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: ./frontend/Dockerfile # Aponta onde o arquivo está, já que o contexto é a raiz
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/doecerto-front:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/doecerto-front:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
@@ -60,7 +58,7 @@ jobs:
   build-mobile-apk:
     name: Build Signed APK
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' # Garante que só roda ao criar a Release
+    if: github.event_name == 'release'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -81,7 +79,7 @@ jobs:
         env:
           IS_MOBILE: "true"
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
-          NEXT_ESLINT_IGNORE_DURING_BUILDS: "true" # Pulando o lint para não travar na Demo
+          NEXT_ESLINT_IGNORE_DURING_BUILDS: "true"
         run: npm run build
 
       - name: Setup Java
@@ -107,6 +105,5 @@ jobs:
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: doecerto-mobile-release
-          # Caminho exato do APK assinado
-          path: frontend/android/app/build/outputs/apk/release/app-release.apk
+          name: doecerto-mobile-v1
+          path: frontend/android/app/build/outputs/apk/release/*.apk
