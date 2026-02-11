@@ -28,9 +28,8 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
-          # MUDANÇA CHAVE: O contexto agora é a pasta frontend
-          context: ./frontend
-          file: ./frontend/Dockerfile
+          context: .
+          file: ./Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/doecerto-front:latest
           build-args: |
@@ -51,11 +50,9 @@ jobs:
           node-version: 20
 
       - name: Install Dependencies
-        working-directory: ./frontend
         run: npm ci
 
       - name: Build Static Export (Next.js)
-        working-directory: ./frontend
         env:
           IS_MOBILE: "true"
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
@@ -64,7 +61,6 @@ jobs:
         run: npm run build
 
       - name: Capacitor Sync
-        working-directory: ./frontend
         run: npx cap sync android
 
       - name: Setup Java
@@ -74,10 +70,10 @@ jobs:
           java-version: '17'
 
       - name: Decode Keystore
-        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > frontend/android/app/doecerto.keystore
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/doecerto.keystore
 
       - name: Build Signed APK
-        working-directory: ./frontend/android
+        working-directory: ./android
         run: |
           chmod +x gradlew
           ./gradlew assembleRelease \
@@ -90,4 +86,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: doecerto-mobile-release
-          path: frontend/android/app/build/outputs/apk/release/*.apk
+          path: android/app/build/outputs/apk/release/*.apk
