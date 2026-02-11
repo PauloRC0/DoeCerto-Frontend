@@ -3,15 +3,18 @@ import type { NextConfig } from "next";
 const isMobile = process.env.IS_MOBILE === "true";
 
 const nextConfig: NextConfig = {
-  output: isMobile ? "export" : "standalone",
+  // Define o tipo de saída baseado na plataforma
+  output: (isMobile ? "export" : "standalone") as any,
+  
+  // Garante que as rotas funcionem bem no Android (ex: /login/)
   trailingSlash: true,
 
   images: {
-    // Se for Mobile, DESATIVA (obrigatório para export estático)
-    // Se for Web, ATIVA (false significa que ele vai tentar otimizar)
+    // Obrigatório ser true para export estático (Mobile)
     unoptimized: isMobile,
   },
 
+  // Blindagem contra erros de TypeScript
   typescript: {
     ignoreBuildErrors: true,
   },

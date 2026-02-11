@@ -3,6 +3,7 @@ apply plugin: 'com.android.application'
 android {
     namespace "com.paulo.doecerto"
     compileSdk rootProject.ext.compileSdkVersion
+    
     defaultConfig {
         applicationId "com.paulo.doecerto"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -12,12 +13,26 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
-             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+
+    // Configuração para capturar as chaves enviadas pelo GitHub Actions
+    signingConfigs {
+        release {
+            if (project.hasProperty('android.injected.signing.store.file')) {
+                storeFile file(project.property('android.injected.signing.store.file'))
+                storePassword project.property('android.injected.signing.store.password')
+                keyAlias project.property('android.injected.signing.key.alias')
+                keyPassword project.property('android.injected.signing.key.password')
+            }
+        }
+    }
+
     buildTypes {
         release {
+            // Vincula a assinatura de release às chaves injetadas
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -46,7 +61,7 @@ apply from: 'capacitor.build.gradle'
 
 try {
     def servicesJSON = file('google-services.json')
-    if (servicesJSON.text) {
+    if (servicesJSON.exists()) {
         apply plugin: 'com.google.gms.google-services'
     }
 } catch(Exception e) {

@@ -1,0 +1,8 @@
+{
+  "appId": "com.paulo.doecerto",
+  "appName": "DoeCerto",
+  "webDir": "out",
+  "server": {
+    "androidScheme": "https"
+  }
+}

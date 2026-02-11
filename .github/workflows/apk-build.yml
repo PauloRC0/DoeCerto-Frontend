@@ -3,9 +3,10 @@ name: Mobile APK Build
 on:
   push:
     tags:
-      - 'v*' # Roda para v1, v1.0, v1.0.0, etc.
+      - 'v*'
   release:
     types: [published, created]
+  workflow_dispatch:
 
 jobs:
   build-mobile-apk:
@@ -18,9 +19,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          # Removi o cache automático para evitar que lixo de builds anteriores quebre o 'extract'
 
       - name: Install Dependencies
-        run: npm ci
+        run: |
+          # Limpeza de segurança para garantir que o ambiente está puro
+          rm -rf node_modules package-lock.json
+          npm install
+          # Instalamos a CLI globalmente no runner para garantir que o comando 'cap' esteja no PATH correto
+          npm install -g @capacitor/cli
 
       - name: Build Static Export (Next.js)
         env:
@@ -30,8 +37,10 @@ jobs:
           NEXT_TYPESCRIPT_IGNORE_BUILD_ERRORS: "true"
         run: npm run build
 
-      - name: Capacitor Sync
-        run: npx cap sync android
+      - name: Capacitor Sync (The Real Way)
+        run: |
+          # O comando 'npx' às vezes usa uma versão de cache. Usar o 'cap' direto da CLI instalada é mais seguro.
+          cap sync android
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -40,7 +49,9 @@ jobs:
           java-version: '17'
 
       - name: Decode Keystore
-        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/doecerto.keystore
+        run: |
+          mkdir -p android/app
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/doecerto.keystore
 
       - name: Build Signed APK
         working-directory: ./android
