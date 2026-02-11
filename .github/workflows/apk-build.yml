@@ -12,6 +12,10 @@ jobs:
   build-mobile-apk:
     name: Build Signed APK
     runs-on: ubuntu-latest
+    # Adicionamos permissão de escrita para que o token possa criar a release e subir arquivos
+    permissions:
+      contents: write
+      
     steps:
       - uses: actions/checkout@v4
 
@@ -19,14 +23,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          # Removi o cache automático para evitar que lixo de builds anteriores quebre o 'extract'
 
       - name: Install Dependencies
         run: |
-          # Limpeza de segurança para garantir que o ambiente está puro
           rm -rf node_modules package-lock.json
           npm install
-          # Instalamos a CLI globalmente no runner para garantir que o comando 'cap' esteja no PATH correto
           npm install -g @capacitor/cli
 
       - name: Build Static Export (Next.js)
@@ -39,7 +40,6 @@ jobs:
 
       - name: Capacitor Sync (The Real Way)
         run: |
-          # O comando 'npx' às vezes usa uma versão de cache. Usar o 'cap' direto da CLI instalada é mais seguro.
           cap sync android
 
       - name: Setup Java
@@ -68,3 +68,16 @@ jobs:
         with:
           name: doecerto-mobile-release
           path: android/app/build/outputs/apk/release/*.apk
+
+      # --- BLOCO NOVO ADICIONADO ABAIXO ---
+      - name: Create or Update Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: android/app/build/outputs/apk/release/app-release.apk
+          name: Release ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
