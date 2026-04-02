@@ -1,30 +1,29 @@
 import type { Metadata } from "next"
 import { Darker_Grotesque } from "next/font/google"
 import "./globals.css"
-
-
+import HelpButton from "@/components/specific/Help/HelpButton"
 
 const darker = Darker_Grotesque({
-    subsets: ["latin"],
-    weight: ["400", "500", "600", "700"],
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 })
-
-
 
 export const metadata: Metadata = {
   title: "DoeCerto",
   description: "App de Doação",
 }
 
-
-export default function RootLayout({ 
-  children 
-}: { 
-  children: React.ReactNode 
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
 }) {
   return (
     <html lang="pt-br">
-      <body className={darker.className}>{children}</body>
+      <body className={darker.className}>
+        {children}
+        <HelpButton />
+      </body>
     </html>
   )
 }
