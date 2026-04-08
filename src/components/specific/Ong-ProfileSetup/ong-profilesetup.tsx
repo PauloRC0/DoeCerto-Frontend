@@ -12,7 +12,15 @@ import {
   Tag,
   Wallet,
   Loader2,
-  ArrowLeft
+  ArrowLeft,
+  Building2,
+  Search,
+  Globe2,
+  MapPinned,
+  Milestone,
+  Info,
+  Navigation,
+  Flag
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { FormSection } from "@/components/ui/form-section";
@@ -35,6 +43,14 @@ export default function OngSetupProfile() {
   const [bio, setBio] = useState("");
   const [phone, setPhone] = useState("");
   const [instagram, setInstagram] = useState("");
+  const [street, setStreet] = useState("");
+  const [number, setNumber] = useState("");
+  const [complement, setComplement] = useState("");
+  const [neighborhood, setNeighborhood] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [zipCode, setZipCode] = useState("");
+  const [country, setCountry] = useState("Brasil");
   const [address, setAddress] = useState("");
   const [years, setYears] = useState("");
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
@@ -281,7 +297,7 @@ export default function OngSetupProfile() {
             </FormSection>
           </div>
 
-          <FormSection title="Canais de Contato e Local" italicTitle>
+          <FormSection title="Canais de Contato" italicTitle>
             <div className="space-y-3 sm:space-y-4">
               <InputGroup icon={Phone} placeholder="WhatsApp" value={phone} onChange={(e) => setPhone(e.target.value)} />
               <InputGroup
@@ -291,13 +307,83 @@ export default function OngSetupProfile() {
                 value={instagram}
                 onChange={(e) => setInstagram(e.target.value)}
               />
+            </div>
+          </FormSection>
+
+          <FormSection title="Endereço Completo" italicTitle>
+            <div className="space-y-3 sm:space-y-4">
+              {/* CEP e País  */}
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                <InputGroup
+                  icon={Search} 
+                  placeholder="CEP"
+                  value={zipCode}
+                  onChange={(e) => setZipCode(e.target.value)}
+                />
+                <InputGroup
+                  icon={Globe2}
+                  placeholder="País"
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                />
+              </div>
+
+              {/* Rua */}
               <InputGroup
-                icon={MapPin}
-                placeholder="Cidade - UF"
-                iconColor="text-blue-400"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
+                icon={MapPinned}
+                placeholder="Rua / Logradouro"
+                value={street}
+                onChange={(e) => setStreet(e.target.value)}
               />
+
+              {/* Número e Complemento */}
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                <div className="w-full sm:w-1/3">
+                  <InputGroup
+                    icon={Milestone} 
+                    placeholder="Nº"
+                    value={number}
+                    onChange={(e) => setNumber(e.target.value)}
+                  />
+                </div>
+                <div className="w-full sm:w-2/3">
+                  <InputGroup
+                    icon={Info}
+                    placeholder="Complemento (Apto, Bloco...)"
+                    value={complement}
+                    onChange={(e) => setComplement(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Bairro */}
+              <InputGroup
+                icon={Navigation}
+                placeholder="Bairro"
+                value={neighborhood}
+                onChange={(e) => setNeighborhood(e.target.value)}
+              />
+
+              {/* Cidade e Estado */}
+              <div className="grid grid-cols-3 gap-3 sm:gap-4">
+                <div className="col-span-2">
+                  <InputGroup
+                    icon={Building2}
+                    placeholder="Cidade"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                  />
+                </div>
+                <div className="col-span-1">
+                  <InputGroup
+                    icon={Flag}
+                    placeholder="UF"
+                    value={state}
+                    maxLength={2}
+                    onChange={(e) => setState(e.target.value.toUpperCase())}
+                  />
+                </div>
+              </div>
             </div>
           </FormSection>
 
