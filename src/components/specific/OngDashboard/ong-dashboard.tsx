@@ -122,41 +122,75 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
 
   return (
     <div className="min-h-screen bg-white text-gray-900 pb-32">
-      {/* Header / Banner */}
-      <div className="relative w-full h-[240px] sm:h-[340px] bg-gray-200 flex items-center justify-center">
-        {ong.bannerUrl ? (
-          <motion.img src={ong.bannerUrl} className="absolute inset-0 w-full h-full object-cover object-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} alt="Banner da ONG" />
-        ) : (
-          <div className="flex flex-col items-center gap-2 text-gray-400">
-            <Camera size={48} strokeWidth={1.5} />
-          </div>
-        )}
+  {/* Header / Banner */}
+  <div className="relative w-full h-[220px] sm:h-[360px] bg-gray-100 border-b border-purple-100 flex items-center justify-center">
+    {ong.bannerUrl ? (
+      <motion.img 
+        src={ong.bannerUrl} 
+        className="absolute inset-0 w-full h-full object-cover" 
+        style={{ 
+          objectPosition: ong.bannerPosition || "50% 50%" 
+        }}
+        initial={{ opacity: 0 }} 
+        animate={{ opacity: 1 }} 
+        alt="Banner da ONG" 
+      />
+    ) : (
+      <div className="absolute inset-0 bg-gradient-to-tr from-purple-100 via-violet-50 to-pink-100" />
+    )}
 
-        <button onClick={() => router.push('/home')} className="absolute top-4 left-4 bg-white/90 p-2 rounded-full z-30 shadow-md text-gray-900 hover:bg-white transition-colors">
-          <ArrowLeft size={20} />
-        </button>
+    {/* Botão Voltar */}
+    <button 
+      onClick={() => router.push('/home')} 
+      className="absolute top-4 left-4 bg-white/90 p-2 rounded-full z-30 shadow-md text-gray-900 hover:bg-white transition-colors"
+    >
+      <ArrowLeft size={20} />
+    </button>
 
-        <motion.button onClick={() => router.push(`/ong-profilesetup`)} className="absolute top-4 right-4 z-50 flex items-center gap-2 bg-white border-2 border-[#4a1d7a] px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl font-bold text-[#4a1d7a] shadow-sm hover:bg-purple-50 transition-colors text-xs sm:text-base">
-          <Pencil size={16} /> <span>Editar Perfil</span>
-        </motion.button>
+    {/* Botão Editar Perfil */}
+    <motion.button 
+      onClick={() => router.push(`/ong-profilesetup`)} 
+      className="absolute top-4 right-4 z-50 flex items-center gap-2 bg-white border-2 border-[#4a1d7a] px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl font-bold text-[#4a1d7a] shadow-sm hover:bg-purple-50 transition-colors text-xs sm:text-base"
+    >
+      <Pencil size={16} /> <span>Editar Perfil</span>
+    </motion.button>
 
-        <motion.div className="absolute -bottom-10 left-6 z-50 w-28 h-28 sm:w-36 sm:h-36 rounded-2xl overflow-hidden border-4 border-white shadow-2xl bg-white flex items-center justify-center">
-          {ong.avatarUrl ? (
-            <img src={ong.avatarUrl} className="w-full h-full object-cover" alt={ong.name} />
-          ) : (
-            <div className="w-full h-full bg-[#4a1d7a] flex items-center justify-center">
-              <span className="text-white text-4xl sm:text-5xl font-black">{ong.name?.charAt(0) || 'O'}</span>
-            </div>
-          )}
-        </motion.div>
-      </div>
-
-      <div className="px-4 sm:px-6 mt-16 sm:mt-20">
-        <h1 className="text-2xl sm:text-4xl font-black text-gray-900">{ong.name || "Minha ONG"}</h1>
-        <div className="text-gray-500 mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm sm:text-lg font-medium">
-          <span className="flex items-center gap-1.5"><MapPin size={18} className="text-red-400" /> {ong.address?.city || "Localização não definida"}</span>
-          <span className="flex items-center gap-1.5"><Award size={18} className="text-blue-400" /> {ong.displayYears || "Tempo não informado"}</span>
+    {/* Foto de Perfil */}
+    <motion.div 
+      className="absolute -bottom-14 left-6 sm:left-10 z-50 w-28 h-28 sm:w-40 sm:h-40 rounded-2xl sm:rounded-3xl overflow-hidden border-4 border-white shadow-xl bg-white flex items-center justify-center"
+    >
+      {ong.avatarUrl ? (
+        <img 
+          src={ong.avatarUrl} 
+          className="w-full h-full object-cover" 
+          alt={ong.name} 
+        />
+      ) : (
+        <div className="w-full h-full bg-[#4a1d7a] flex items-center justify-center">
+          <span className="text-white text-4xl sm:text-5xl font-black">
+            {ong.name?.charAt(0) || 'O'}
+          </span>
         </div>
+      )}
+    </motion.div>
+  </div>
+
+  {/* Conteúdo Abaixo do Header */}
+  <div className="px-4 sm:px-10 mt-16 sm:mt-20">
+    <h1 className="text-2xl sm:text-4xl font-black text-gray-900">
+      {ong.name || "Minha ONG"}
+    </h1>
+    
+    <div className="text-gray-500 mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm sm:text-lg font-medium">
+      <span className="flex items-center gap-1.5">
+        <MapPin size={18} className="text-red-400" /> 
+        {ong.address?.city || "Localização não definida"}
+      </span>
+      <span className="flex items-center gap-1.5">
+        <Award size={18} className="text-blue-400" /> 
+        {ong.displayYears || "Tempo não informado"}
+      </span>
+    </div>
 
         {/* --- CATEGORIAS --- */}
         {ong.categories && ong.categories.length > 0 && (

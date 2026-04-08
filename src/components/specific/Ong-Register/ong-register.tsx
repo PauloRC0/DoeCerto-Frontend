@@ -186,7 +186,7 @@ export default function OngRegisterPage() {
                 type={showSenha ? "text" : "password"}
                 required
                 minLength={6}
-                placeholder="Mínimo 6 caracteres"
+                placeholder="Mínimo de 8 caracteres"
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 className={`w-full bg-white p-2 pr-10 rounded-md text-black text-xl placeholder:text-lg focus:outline-none focus:ring-2 transition-all ${
