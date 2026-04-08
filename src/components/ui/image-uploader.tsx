@@ -7,11 +7,12 @@ import { motion, AnimatePresence, useMotionValue } from "framer-motion";
 interface ImageUploaderProps {
   image: string;
   onImageChange: (file: File) => void;
+  onCropChange?: (crop: { x: number; y: number }) => void;
   variant: "banner" | "logo";
   label?: string;
 }
 
-export function ImageUploader({ image, onImageChange, variant, label }: ImageUploaderProps) {
+export function ImageUploader({ image, onImageChange, onCropChange, variant, label }: ImageUploaderProps) {
   const [editing, setEditing] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -41,6 +42,7 @@ export function ImageUploader({ image, onImageChange, variant, label }: ImageUpl
         dragX.set(0);
         dragY.set(0);
         setObjectPos({ x: 50, y: 50 });
+        onCropChange?.({ x: 50, y: 50 });
         setEditing(true);
       }
       
@@ -58,10 +60,13 @@ export function ImageUploader({ image, onImageChange, variant, label }: ImageUpl
     const moveX = 50 - (dragX.get() / divisorX);
     const moveY = 50 - (dragY.get() / divisorY);
 
-    setObjectPos({
+    const nextObjectPos = {
       x: Math.max(0, Math.min(100, moveX)),
       y: Math.max(0, Math.min(100, moveY))
-    });
+    };
+
+    setObjectPos(nextObjectPos);
+    onCropChange?.(nextObjectPos);
     setEditing(false);
   };
 
