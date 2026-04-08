@@ -34,7 +34,7 @@ Frontend completo em **Next.js 16** com suporte para web e mobile (Android via C
 
 ### Funcionalidades Implementadas
 
-#### Para Doadores
+#### Para Doador
 - ✅ Autenticação (login/registro com CPF)
 - ✅ Perfil com avatar, bio e histórico
 - ✅ Listagem de ONGs com filtros por categoria
