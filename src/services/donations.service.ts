@@ -14,7 +14,10 @@ export interface DonationService {
   donor?: {
     user: {
       name: string;
-    }
+    };
+    profile?: {
+      contactNumber?: string;
+    };
   };
 }
 
@@ -23,19 +26,17 @@ export const DonationService = {
    * Registra uma doação material
    * Rota: POST /donations
    */
-async createMaterialDonation(ongId: number, payload: {
+  async createMaterialDonation(ongId: number, payload: {
     wishlistItemId: number | null | string;
     quantity: number;
     description: string;
   }) {
     try {
-      // O backend rejeitou explicitamente a propriedade 'wishlistItemId'.
-      // Vamos enviar apenas os dados que ele aceita na rota POST /donations.
       const body: any = {
         ongId: Number(ongId),
         materialQuantity: payload.quantity.toString(),
         materialDescription: payload.description,
-        donationType: 'material' 
+        donationType: 'material'
       };
 
       console.log("📦 Enviando apenas o que o backend permite:", body);
@@ -44,10 +45,10 @@ async createMaterialDonation(ongId: number, payload: {
         method: 'POST',
         body: JSON.stringify(body),
       });
-      
+
       return response?.data ?? response;
     } catch (error: any) {
-      // Se o erro for 400, o log abaixo ajudará a ver o que sobrou de errado
+
       console.error("❌ Erro retornado pelo servidor:", error);
       throw error;
     }
@@ -80,7 +81,14 @@ async createMaterialDonation(ongId: number, payload: {
           materialQuantity: item.materialQuantity,
           proofUrl: formattedProofUrl,
           createdAt: item.createdAt,
-          donor: { user: { name: item.donor?.user?.name || "Doador Anônimo" } }
+          donor: {
+            user: {
+              name: item.donor?.user?.name || "Doador Anônimo"
+            },
+            profile: {
+              contactNumber: item.donor?.profile?.contactNumber || ""
+            }
+          }
         };
       }) as DonationService[];
     } catch (error) {

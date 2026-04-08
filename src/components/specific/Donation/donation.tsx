@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, PhoneOff } from "lucide-react";
 import { WishlistService } from "@/services/wishlist.service";
+import { DonorService, DonorProfileData } from "@/services/donor.service";
 
 export interface DonationData {
   tipoItem: string;
@@ -25,50 +26,58 @@ export default function Donation({
   onCancel,
 }: DonationProps) {
   const [itemsCadastrados, setItemsCadastrados] = useState<any[]>([]);
+  const [userProfile, setUserProfile] = useState<DonorProfileData | null>(null);
   const [selectedItemId, setSelectedItemId] = useState("");
   const [quantidade, setQuantidade] = useState<number | "">("");
   const [descricaoAdicional, setDescricaoAdicional] = useState("");
   const [loading, setLoading] = useState(false);
-  const [fetchingItems, setFetchingItems] = useState(true);
+  const [fetchingData, setFetchingData] = useState(true);
   
   const router = useRouter();
 
-  // Carrega os itens que a ONG cadastrou
   useEffect(() => {
-    async function loadWishlist() {
+    async function loadInitialData() {
       try {
-        setFetchingItems(true);
-        // Usando getItems conforme definido no seu service
-        const data = await WishlistService.getItems(ongId);
-        setItemsCadastrados(data || []);
+        setFetchingData(true);
+        const [items, profile] = await Promise.all([
+          WishlistService.getItems(ongId),
+          DonorService.getMyProfile() 
+        ]);
+        
+        setItemsCadastrados(items || []);
+        setUserProfile(profile);
       } catch (err) {
-        console.error("Erro ao carregar itens da ONG:", err);
+        console.error("Erro ao carregar dados iniciais:", err);
       } finally {
-        setFetchingItems(false);
+        setFetchingData(false);
       }
     }
-    if (ongId) loadWishlist();
+    if (ongId) loadInitialData();
   }, [ongId]);
 
   const handleSubmit = async (ev: React.FormEvent) => {
     ev.preventDefault();
+
+
+    if (!userProfile?.phone) {
+      alert("Para realizar uma doação, você precisa cadastrar um telefone de contato no seu perfil.");
+      router.push("/profile/edit"); 
+      return;
+    }
 
     if (!selectedItemId || !quantidade || !descricaoAdicional) {
       alert("Por favor, preencha todos os campos.");
       return;
     }
 
-    // Busca o item selecionado para pegar a descrição dele
     const itemDaLista = itemsCadastrados.find(i => i.id.toString() === selectedItemId);
     
-    // Formata a descrição combinando o nome do item + observação do usuário
-    // Ex: "Alimentos - Arroz e Feijão dentro da validade"
     const descricaoFinal = itemDaLista 
       ? `${itemDaLista.description} - ${descricaoAdicional}`
       : descricaoAdicional;
 
     const payload: DonationData = {
-      tipoItem: "material", // Fixo conforme seu banco de dados
+      tipoItem: "material", 
       quantidade: Number(quantidade),
       descricao: descricaoFinal,
     };
@@ -84,6 +93,9 @@ export default function Donation({
       setLoading(false);
     }
   };
+
+
+  const hasPhone = !!userProfile?.phone;
 
   return (
     <div className="w-full max-w-md mx-auto p-4">
@@ -102,11 +114,30 @@ export default function Donation({
         </p>
       </div>
 
+      {/* Alerta Visual de Telefone Faltando */}
+      {!fetchingData && !hasPhone && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-start gap-3">
+          <PhoneOff className="text-red-500 shrink-0" size={20} />
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-bold text-red-800">Telefone não encontrado</p>
+            <p className="text-xs text-red-700">
+              A ONG precisa do seu contato para combinar a entrega dos itens.
+            </p>
+            <button 
+              type="button"
+              onClick={() => router.push("/dashboard")}
+              className="text-xs font-black text-red-900 underline w-fit"
+            >
+              Completar meu perfil agora
+            </button>
+          </div>
+        </div>
+      )}
+
       <form
         onSubmit={handleSubmit}
-        className="bg-white rounded-[24px] shadow-xl border border-gray-100 p-6 flex flex-col gap-5"
+        className={`bg-white rounded-[24px] shadow-xl border border-gray-100 p-6 flex flex-col gap-5 ${!hasPhone && !fetchingData ? 'opacity-75' : ''}`}
       >
-        {/* O que você vai doar? (Agora com itens da Wishlist) */}
         <div className="flex flex-col gap-1.5">
           <label className="font-bold text-sm text-gray-700 ml-1">O que você vai doar?</label>
           <div className="relative">
@@ -114,7 +145,7 @@ export default function Donation({
               value={selectedItemId}
               onChange={(e) => setSelectedItemId(e.target.value)}
               required
-              disabled={fetchingItems}
+              disabled={fetchingData || !hasPhone}
               className="w-full p-3.5 rounded-2xl border border-gray-200 bg-gray-50 text-gray-700 focus:border-[#4a1d7a] focus:ring-4 focus:ring-purple-50 outline-none transition-all appearance-none disabled:opacity-50"
             >
               <option value="">Selecione o item</option>
@@ -133,7 +164,6 @@ export default function Donation({
           </div>
         </div>
 
-        {/* Quantidade */}
         <div className="flex flex-col gap-1.5">
           <label className="font-bold text-sm text-gray-700 ml-1">Quantidade</label>
           <input
@@ -142,12 +172,12 @@ export default function Donation({
             value={quantidade}
             onChange={(e) => setQuantidade(e.target.value === "" ? "" : Number(e.target.value))}
             required
+            disabled={fetchingData || !hasPhone}
             placeholder="Ex: 10"
-            className="p-3.5 rounded-2xl border border-gray-200 bg-gray-50 text-gray-700 focus:border-[#4a1d7a] focus:ring-4 focus:ring-purple-50 outline-none transition-all"
+            className="p-3.5 rounded-2xl border border-gray-200 bg-gray-50 text-gray-700 focus:border-[#4a1d7a] focus:ring-4 focus:ring-purple-50 outline-none transition-all disabled:opacity-50"
           />
         </div>
 
-        {/* Descrição dos Itens */}
         <div className="flex flex-col gap-1.5">
           <label className="font-bold text-sm text-gray-700 ml-1">Descrição dos Itens</label>
           <textarea
@@ -155,16 +185,16 @@ export default function Donation({
             value={descricaoAdicional}
             onChange={(e) => setDescricaoAdicional(e.target.value)}
             required
+            disabled={fetchingData || !hasPhone}
             placeholder="Conte-nos mais (ex: estado de conservação, validade...)"
-            className="p-3.5 rounded-2xl border border-gray-200 bg-gray-50 text-gray-700 focus:border-[#4a1d7a] focus:ring-4 focus:ring-purple-50 outline-none transition-all resize-none"
+            className="p-3.5 rounded-2xl border border-gray-200 bg-gray-50 text-gray-700 focus:border-[#4a1d7a] focus:ring-4 focus:ring-purple-50 outline-none transition-all resize-none disabled:opacity-50"
           />
         </div>
 
-        {/* Ações */}
         <div className="flex flex-col gap-3 mt-2">
           <button
             type="submit"
-            disabled={loading || fetchingItems}
+            disabled={loading || fetchingData || !hasPhone}
             className="bg-[#4a1d7a] hover:bg-[#3a1661] text-white font-black py-4 rounded-2xl shadow-lg shadow-purple-100 transition-all active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2"
           >
             {loading && <Loader2 className="animate-spin" size={20} />}
