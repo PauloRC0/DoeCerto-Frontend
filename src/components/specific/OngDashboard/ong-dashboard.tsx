@@ -12,7 +12,7 @@ import { OngsProfileService } from "@/services/ongs-profile.service";
 import { DonationService } from "@/services/donations.service";
 import { api } from "@/services/api";
 
-// Definição da interface para aceitar a prop vinda da página pai
+
 interface OngDashboardProps {
   ong?: any;
 }
@@ -26,11 +26,23 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
   const [reviews, setReviews] = useState<any[]>([]);
   const [donations, setDonations] = useState<any[]>([]);
 
-  // Estados para Modais
+
   const [confirmModal, setConfirmModal] = useState<{ id: number; type: 'accept' | 'reject' } | null>(null);
   const [selectedDonation, setSelectedDonation] = useState<any | null>(null);
   const [zoomImage, setZoomImage] = useState<string | null>(null);
   const API_URL = process.env.NEXT_PUBLIC_API_URL
+
+  const donorPhone = selectedDonation?.donor?.profile?.contactNumber ?? "";
+
+  const message = encodeURIComponent(
+    `Olá! Sou da ONG ${ong?.name}. Sobre a doação de itens que você enviou.`
+  );
+
+  const cleanPhone = donorPhone.replace(/\D/g, "");
+
+  const whatsappLink = cleanPhone
+    ? `https://wa.me/${cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`}?text=${message}`
+    : null;
 
   async function loadData() {
     try {
@@ -84,7 +96,6 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
     } catch (error: any) {
       console.error("Erro ao processar ação:", error);
 
-      // Tratamento de erro mais amigável
       const errorMessage = error.response?.data?.message || "Não foi possível atualizar o status da doação.";
       alert(errorMessage);
     } finally {
@@ -121,7 +132,7 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
           </div>
         )}
 
-        <button onClick={() => router.back()} className="absolute top-4 left-4 bg-white/90 p-2 rounded-full z-30 shadow-md text-gray-900 hover:bg-white transition-colors">
+        <button onClick={() => router.push('/home')} className="absolute top-4 left-4 bg-white/90 p-2 rounded-full z-30 shadow-md text-gray-900 hover:bg-white transition-colors">
           <ArrowLeft size={20} />
         </button>
 
@@ -225,9 +236,11 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
                     </div>
                     <div className="mt-4 pt-3 border-t border-gray-50 flex gap-2">
                       <button
-                        onClick={() => setSelectedDonation(item)}
-                        className="flex-1 py-2 bg-purple-50 text-[#4a1d7a] text-xs font-bold rounded-lg hover:bg-purple-100 transition-colors flex items-center justify-center gap-1"
-                      >
+                        onClick={() => {
+                          console.log("DOACAO:", item);
+                          setSelectedDonation(item);
+                        }}
+                        className="flex-1 py-2 bg-purple-50 text-[#4a1d7a] text-xs font-bold rounded-lg hover:bg-purple-100 transition-colors flex items-center justify-center gap-1">
                         <FileText size={14} /> Ver Detalhes
                       </button>
                     </div>
@@ -318,6 +331,17 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
                 )}
 
                 <div className="space-y-4 mb-8">
+                  {selectedDonation?.type !== "monetary" && whatsappLink && (
+                    <a
+                      href={whatsappLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full flex items-center justify-center gap-2 py-3 mb-4 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 transition"
+                    >
+                      <ExternalLink size={18} />
+                      Falar com o doador no WhatsApp
+                    </a>
+                  )}
                   <div className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
                     <span className="text-sm text-gray-500 font-bold">Doador</span>
                     <span className="text-sm text-gray-900 font-black">{selectedDonation.donor?.user?.name || 'Não identificado'}</span>
@@ -418,7 +442,7 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
               src={zoomImage}
               className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
               alt="Comprovante ampliado"
-              onClick={(e) => e.stopPropagation()} // Impede fechar ao clicar na imagem
+              onClick={(e) => e.stopPropagation()}
             />
 
             <p className="absolute bottom-10 text-white/60 font-medium text-sm">

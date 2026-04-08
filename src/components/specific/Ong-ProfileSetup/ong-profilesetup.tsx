@@ -73,13 +73,13 @@ export default function OngSetupProfile() {
         const profile = await OngsProfileService.getMyProfile();
 
         if (profile) {
-          setOngId(profile.id); // Guardamos o ID para operações na Wishlist
+          setOngId(profile.id);
           setOngName(profile.name || "Minha ONG");
           setBio(profile.about || "");
           setPhone(profile.contactNumber || "");
           setInstagram(profile.websiteUrl || "");
 
-          // Busca os itens da Wishlist (Itens que aceitamos)
+
           try {
             const wishlistData = await WishlistService.getItems(profile.id);
             setItems(wishlistData || []);
@@ -87,7 +87,7 @@ export default function OngSetupProfile() {
             console.error("Erro ao carregar wishlist:", err);
           }
 
-          // Tratamento de Endereço (Cidade - UF)
+
           if (profile.address) {
             const addr = typeof profile.address === 'object'
               ? `${profile.address.city || ''}${profile.address.state ? ' - ' + profile.address.state : ''}`
@@ -95,7 +95,7 @@ export default function OngSetupProfile() {
             setAddress(addr);
           }
 
-          // Anos de atuação
+
           if (profile.createdAt) {
             const diff = new Date().getFullYear() - new Date(profile.createdAt).getFullYear();
             setYears(diff.toString());
@@ -109,7 +109,7 @@ export default function OngSetupProfile() {
           }
         }
 
-        // 3. Carrega dados bancários
+
         const bankData = await BankAccountService.getMyAccount();
         if (bankData) {
           setBankName(bankData.bankName || "");
@@ -148,10 +148,10 @@ export default function OngSetupProfile() {
     if (!newItem.trim() || !ongId) return;
 
     try {
-      // Chama o POST para a API
+
       const addedItem = await WishlistService.addItem(ongId, newItem.trim(), 1);
 
-      // Atualiza o estado com o objeto completo (incluindo o ID do banco)
+
       setItems(prev => [...prev, addedItem]);
       setNewItem("");
     } catch (error) {
@@ -229,7 +229,7 @@ export default function OngSetupProfile() {
         />
 
         <button
-          onClick={() => router.back()}
+          onClick={() => router.push("/ong-dashboard")}
           className="absolute top-4 left-4 bg-white/90 p-2 rounded-full z-30 shadow-md text-gray-900 hover:bg-white transition-colors"
         >
           <ArrowLeft size={20} />
