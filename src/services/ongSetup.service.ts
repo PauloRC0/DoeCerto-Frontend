@@ -36,11 +36,19 @@ export const OngSetupService = {
   },
 
   // Chamada para imagens
-  async updateProfileImages(avatar?: File, banner?: File) {
+  async updateProfileImages(
+    avatar?: File,
+    banner?: File,
+    bannerCrop?: { x: number; y: number },
+  ) {
     const formData = new FormData();
 
     if (avatar) formData.append('avatar', avatar);
     if (banner) formData.append('banner', banner);
+    if (banner && bannerCrop) {
+      formData.append('bannerCropX', String(bannerCrop.x));
+      formData.append('bannerCropY', String(bannerCrop.y));
+    }
 
     return api('/ongs/me/profile', {
       method: 'POST',

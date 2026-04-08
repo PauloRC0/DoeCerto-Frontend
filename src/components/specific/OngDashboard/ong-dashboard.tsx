@@ -125,7 +125,7 @@ export default function OngDashboard({ ong: initialOng }: OngDashboardProps) {
       {/* Header / Banner */}
       <div className="relative w-full h-[240px] sm:h-[340px] bg-gray-200 flex items-center justify-center">
         {ong.bannerUrl ? (
-          <motion.img src={ong.bannerUrl} className="absolute inset-0 w-full h-full object-cover object-top" initial={{ opacity: 0 }} animate={{ opacity: 1 }} alt="Banner da ONG" />
+          <motion.img src={ong.bannerUrl} className="absolute inset-0 w-full h-full object-cover object-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} alt="Banner da ONG" />
         ) : (
           <div className="flex flex-col items-center gap-2 text-gray-400">
             <Camera size={48} strokeWidth={1.5} />

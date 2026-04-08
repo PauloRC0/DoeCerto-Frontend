@@ -43,6 +43,7 @@ export default function OngSetupProfile() {
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState("");
   const [bannerPreview, setBannerPreview] = useState("");
+  const [bannerCrop, setBannerCrop] = useState<{ x: number; y: number }>({ x: 50, y: 50 });
 
   // No topo do componente OngSetupProfile
   const [newItem, setNewItem] = useState("");
@@ -188,7 +189,8 @@ export default function OngSetupProfile() {
       if (logoFile || bannerFile) {
         await OngSetupService.updateProfileImages(
           logoFile || undefined,
-          bannerFile || undefined
+          bannerFile || undefined,
+          bannerFile ? bannerCrop : undefined
         );
       }
 
@@ -225,6 +227,7 @@ export default function OngSetupProfile() {
           variant="banner"
           image={bannerPreview}
           onImageChange={handleBannerChange}
+          onCropChange={setBannerCrop}
           label="Adicionar Foto de Capa"
         />
 

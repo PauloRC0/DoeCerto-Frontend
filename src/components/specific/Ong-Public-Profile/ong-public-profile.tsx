@@ -80,7 +80,7 @@ const loadData = async () => {
         {ong.banner && !errors.banner ? (
           <motion.img
             src={ong.banner}
-            className="absolute inset-0 w-full h-full object-cover object-top"
+            className="absolute inset-0 w-full h-full object-cover object-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             onError={() => setErrors(prev => ({ ...prev, banner: true }))}
