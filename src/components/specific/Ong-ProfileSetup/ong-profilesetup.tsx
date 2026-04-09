@@ -189,44 +189,49 @@ export default function OngSetupProfile() {
       alert("Erro ao remover item do servidor.");
     }
   };
-  const handleFinalize = async () => {
-    setLoading(true);
-    try {
-      // ETAPA 1: Dados textuais
-      await OngSetupService.updateProfileData({
-        about: bio,
-        contactNumber: phone,
-        address,
-        websiteUrl: instagram,
-        categoryIds: selectedCategoryIds,
-      });
+const handleFinalize = async () => {
+  setLoading(true);
+  try {
+    // ETAPA 1: Dados textuais e Categorias (Envia como JSON para não quebrar os IDs)
+    await OngSetupService.updateProfileData({
+      about: bio,
+      contactNumber: phone,
+      websiteUrl: instagram,
+      categoryIds: selectedCategoryIds, // Aqui o map(Number) do service vai funcionar
+    });
 
-      // ETAPA 2: Imagens
-      if (logoFile || bannerFile) {
-        await OngSetupService.updateProfileImages(
-          logoFile || undefined,
-          bannerFile || undefined,
-          bannerFile ? bannerCrop : undefined
-        );
-      }
-
-      // ETAPA 3: Itens
-      await BankAccountService.saveAccount({
-        bankName,
-        agencyNumber,
-        accountNumber,
-        accountType,
-        pixKey
-      });
-
-      router.push("/ong-dashboard");
-    } catch (error: any) {
-      console.error(error);
-      alert(error.message || "Houve um erro ao salvar seu perfil.");
-    } finally {
-      setLoading(false);
+    // ETAPA 2: Imagens (Envia como FormData apenas se houver arquivos novos)
+    if (logoFile || bannerFile) {
+      await OngSetupService.updateProfileImages(
+        logoFile,
+        bannerFile,
+        bannerFile ? bannerCrop : undefined
+      );
     }
-  };
+
+    // ETAPA 3: Dados Bancários
+    await BankAccountService.saveAccount({
+      bankName,
+      agencyNumber,
+      accountNumber,
+      accountType,
+      pixKey
+    });
+
+    router.push("/ong-dashboard");
+  } catch (error: any) {
+    console.error("Erro ao salvar perfil:", error);
+    
+    // Tratamento amigável da mensagem de erro
+    const errorMessage = error.message?.includes("avatar") 
+      ? "Erro ao processar a imagem. Tente usar um formato .jpg ou .png menor."
+      : error.message || "Houve um erro ao salvar seu perfil.";
+      
+    alert(errorMessage);
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (initialLoading) {
     return (
