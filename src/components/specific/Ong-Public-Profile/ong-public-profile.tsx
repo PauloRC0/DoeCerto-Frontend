@@ -28,7 +28,7 @@ export interface OngProfileData {
   instagram: string;
   address: string;
   distance: string;
-  years: string;
+  yearsOfOperation: number;
   numberOfRatings: number;
   rating: number;
   donations: number;
@@ -43,22 +43,22 @@ export default function OngPublicProfile({ ongId }: { ongId: number }) {
   const [data, setData] = useState<{ ong: OngProfileData; reviews: Review[] } | null>(null);
   const [errors, setErrors] = useState({ banner: false, logo: false });
 
-const loadData = async () => {
-  if (!ongId) return;
-  try {
-    const result = await OngsProfileService.getPublicProfile(ongId);
-    
-    setData({
-      ong: {
-        ...result,
-        categories: result.categories.map((c: any) => typeof c === 'string' ? c : c.name)
-      },
-      reviews: result.reviews || []
-    });
-  } catch (err) {
-    console.error("❌ Erro ao carregar perfil:", err);
-  }
-};
+  const loadData = async () => {
+    if (!ongId) return;
+    try {
+      const result = await OngsProfileService.getPublicProfile(ongId);
+
+      setData({
+        ong: {
+          ...result,
+          categories: result.categories.map((c: any) => typeof c === 'string' ? c : c.name)
+        },
+        reviews: result.reviews || []
+      });
+    } catch (err) {
+      console.error("❌ Erro ao carregar perfil:", err);
+    }
+  };
 
   useEffect(() => { loadData(); }, [ongId]);
 
@@ -110,7 +110,8 @@ const loadData = async () => {
         {/* --- LOCALIZAÇÃO E ANOS --- */}
         <div className="text-gray-400 mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm font-medium items-center">
           <span className="flex items-center gap-1.5"><MapPin size={18} className="text-red-400" /> {ong.address || "Endereço não informado"}</span>
-          <span className="flex items-center gap-1.5"><Award size={18} className="text-blue-400" /> {ong.years || "Novo"}</span>
+          <span className="flex items-center gap-1.5"><Award size={18} className="text-blue-400" /> {ong.yearsOfOperation
+            ? `${ong.yearsOfOperation} ${ong.yearsOfOperation === 1 ? 'ano' : 'anos'} de atuação` : "Ano de atuação não informado"}</span>
         </div>
 
         {/* --- CATEGORIAS --- */}

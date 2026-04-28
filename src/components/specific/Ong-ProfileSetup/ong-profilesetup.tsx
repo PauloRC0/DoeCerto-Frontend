@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
-  MapPin,
   Award,
   Plus,
   Trash2,
@@ -30,7 +29,7 @@ import { ImageUploader } from "@/components/ui/image-uploader";
 import { BankAccountService } from "@/services/bank-account.service";
 import { OngsProfileService } from "@/services/ongs-profile.service";
 import { OngSetupService } from "@/services/ongSetup.service";
-import { WishlistService, WishlistItem } from "@/services/wishlist.service";
+import { WishlistService } from "@/services/wishlist.service";
 
 export default function OngSetupProfile() {
   const router = useRouter();
@@ -40,9 +39,9 @@ export default function OngSetupProfile() {
   const [ongName, setOngName] = useState("Minha ONG");
   const [availableCategories, setAvailableCategories] = useState<any[]>([]);
 
-  const [bio, setBio] = useState("");
+  const [description, setDescription] = useState("");
   const [phone, setPhone] = useState("");
-  const [instagram, setInstagram] = useState("");
+  const [website, setWebsite] = useState("");
   const [street, setStreet] = useState("");
   const [number, setNumber] = useState("");
   const [complement, setComplement] = useState("");
@@ -61,7 +60,6 @@ export default function OngSetupProfile() {
   const [bannerPreview, setBannerPreview] = useState("");
   const [bannerCrop, setBannerCrop] = useState<{ x: number; y: number }>({ x: 50, y: 50 });
 
-  // No topo do componente OngSetupProfile
   const [newItem, setNewItem] = useState("");
   const [items, setItems] = useState<any[]>([]);
   const [ongId, setOngId] = useState<number | null>(null);
@@ -74,28 +72,24 @@ export default function OngSetupProfile() {
 
   const accountTypeOptions = ["Corrente", "Poupança", "Aplicação"];
 
-
-
-
   useEffect(() => {
     async function loadInitialData() {
       try {
         setInitialLoading(true);
 
-        // 1. Carrega categorias do banco
         const categories = await OngSetupService.getCategories();
         setAvailableCategories(categories || []);
 
-        // 2. Busca perfil atualizado
         const profile = await OngsProfileService.getMyProfile();
 
         if (profile) {
           setOngId(profile.id);
           setOngName(profile.name || "Minha ONG");
-          setBio(profile.about || "");
-          setPhone(profile.contactNumber || "");
-          setInstagram(profile.websiteUrl || "");
 
+          // CORREÇÃO: Usando 'description' em vez de 'about' para alinhar com o DTO
+          setDescription(profile.description || "");
+          setPhone(profile.contactNumber || "");
+          setWebsite(profile.website || "");
 
           try {
             const wishlistData = await WishlistService.getItems(profile.id);
@@ -104,7 +98,6 @@ export default function OngSetupProfile() {
             console.error("Erro ao carregar wishlist:", err);
           }
 
-
           if (profile.address) {
             const addr = typeof profile.address === 'object'
               ? `${profile.address.city || ''}${profile.address.state ? ' - ' + profile.address.state : ''}`
@@ -112,8 +105,9 @@ export default function OngSetupProfile() {
             setAddress(addr);
           }
 
-
-          if (profile.createdAt) {
+          if (profile.yearsOfOperation) {
+            setYears(profile.yearsOfOperation.toString());
+          } else if (profile.createdAt) {
             const diff = new Date().getFullYear() - new Date(profile.createdAt).getFullYear();
             setYears(diff.toString());
           }
@@ -125,7 +119,6 @@ export default function OngSetupProfile() {
             setSelectedCategoryIds(profile.categories.map((c: any) => c.id));
           }
         }
-
 
         const bankData = await BankAccountService.getMyAccount();
         if (bankData) {
@@ -163,12 +156,8 @@ export default function OngSetupProfile() {
 
   const handleAddItems = async () => {
     if (!newItem.trim() || !ongId) return;
-
     try {
-
       const addedItem = await WishlistService.addItem(ongId, newItem.trim(), 1);
-
-
       setItems(prev => [...prev, addedItem]);
       setNewItem("");
     } catch (error) {
@@ -178,60 +167,52 @@ export default function OngSetupProfile() {
 
   const handleDeleteItem = async (itemId: number) => {
     if (!ongId) return;
-
     try {
-      // Chama o DELETE para a API
       await WishlistService.deleteItem(ongId, itemId);
-
-      // Remove do estado local para atualizar a tela
       setItems(prev => prev.filter(item => item.id !== itemId));
     } catch (error) {
       alert("Erro ao remover item do servidor.");
     }
   };
-const handleFinalize = async () => {
-  setLoading(true);
-  try {
-    // ETAPA 1: Dados textuais e Categorias (Envia como JSON para não quebrar os IDs)
-    await OngSetupService.updateProfileData({
-      about: bio,
-      contactNumber: phone,
-      websiteUrl: instagram,
-      categoryIds: selectedCategoryIds, // Aqui o map(Number) do service vai funcionar
-    });
 
-    // ETAPA 2: Imagens (Envia como FormData apenas se houver arquivos novos)
-    if (logoFile || bannerFile) {
-      await OngSetupService.updateProfileImages(
-        logoFile,
-        bannerFile,
-        bannerFile ? bannerCrop : undefined
-      );
+  const handleFinalize = async () => {
+    setLoading(true);
+    try {
+      await OngSetupService.updateProfileData({
+        description: description,
+        contactNumber: phone,
+        websiteUrls: website ? [website] : [],
+        categoryIds: selectedCategoryIds,
+        yearsOfOperation: years ? Number(years) : undefined,
+      });
+
+      if (logoFile || bannerFile) {
+        await OngSetupService.updateProfileImages(
+          logoFile,
+          bannerFile,
+          bannerFile ? bannerCrop : undefined
+        );
+      }
+
+      await BankAccountService.saveAccount({
+        bankName,
+        agencyNumber,
+        accountNumber,
+        accountType,
+        pixKey
+      });
+
+      router.push("/ong-dashboard");
+    } catch (error: any) {
+      console.error("Erro ao salvar perfil:", error);
+      const errorMessage = error.message?.includes("avatar")
+        ? "Erro ao processar a imagem. Tente usar um formato .jpg ou .png menor."
+        : error.message || "Houve um erro ao salvar seu perfil.";
+      alert(errorMessage);
+    } finally {
+      setLoading(false);
     }
-
-    // ETAPA 3: Dados Bancários
-    await BankAccountService.saveAccount({
-      bankName,
-      agencyNumber,
-      accountNumber,
-      accountType,
-      pixKey
-    });
-
-    router.push("/ong-dashboard");
-  } catch (error: any) {
-    console.error("Erro ao salvar perfil:", error);
-    
-    // Tratamento amigável da mensagem de erro
-    const errorMessage = error.message?.includes("avatar") 
-      ? "Erro ao processar a imagem. Tente usar um formato .jpg ou .png menor."
-      : error.message || "Houve um erro ao salvar seu perfil.";
-      
-    alert(errorMessage);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   if (initialLoading) {
     return (
@@ -283,8 +264,8 @@ const handleFinalize = async () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <FormSection title="Sobre a ONG" className="md:col-span-2">
               <textarea
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
                 placeholder="Descreva a história da sua ONG..."
                 className="w-full text-base leading-relaxed text-gray-700 bg-gray-50 p-4 rounded-xl outline-none focus:ring-2 focus:ring-purple-200 border-none transition-all"
                 rows={4}
@@ -309,18 +290,17 @@ const handleFinalize = async () => {
                 icon={Instagram}
                 placeholder="Link do Instagram ou Site"
                 iconColor="text-pink-400"
-                value={instagram}
-                onChange={(e) => setInstagram(e.target.value)}
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
               />
             </div>
           </FormSection>
 
           <FormSection title="Endereço Completo" italicTitle>
             <div className="space-y-3 sm:space-y-4">
-              {/* CEP e País  */}
               <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <InputGroup
-                  icon={Search} 
+                  icon={Search}
                   placeholder="CEP"
                   value={zipCode}
                   onChange={(e) => setZipCode(e.target.value)}
@@ -333,7 +313,6 @@ const handleFinalize = async () => {
                 />
               </div>
 
-              {/* Rua */}
               <InputGroup
                 icon={MapPinned}
                 placeholder="Rua / Logradouro"
@@ -341,11 +320,10 @@ const handleFinalize = async () => {
                 onChange={(e) => setStreet(e.target.value)}
               />
 
-              {/* Número e Complemento */}
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <div className="w-full sm:w-1/3">
                   <InputGroup
-                    icon={Milestone} 
+                    icon={Milestone}
                     placeholder="Nº"
                     value={number}
                     onChange={(e) => setNumber(e.target.value)}
@@ -361,7 +339,6 @@ const handleFinalize = async () => {
                 </div>
               </div>
 
-              {/* Bairro */}
               <InputGroup
                 icon={Navigation}
                 placeholder="Bairro"
@@ -369,7 +346,6 @@ const handleFinalize = async () => {
                 onChange={(e) => setNeighborhood(e.target.value)}
               />
 
-              {/* Cidade e Estado */}
               <div className="grid grid-cols-3 gap-3 sm:gap-4">
                 <div className="col-span-2">
                   <InputGroup
@@ -412,7 +388,6 @@ const handleFinalize = async () => {
 
           <FormSection title="Dados para Recebimento" icon={Wallet} className="bg-gradient-to-br from-white to-purple-50">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-              {/* Banco - Ocupa a linha toda */}
               <div className="md:col-span-2">
                 <label className="text-[10px] font-black uppercase text-purple-400 mb-1 block ml-1">Instituição Bancária</label>
                 <input
@@ -423,7 +398,6 @@ const handleFinalize = async () => {
                 />
               </div>
 
-              {/* Tipo de Conta */}
               <CustomSelect
                 label="Tipo de Conta"
                 value={accountType}
@@ -431,7 +405,6 @@ const handleFinalize = async () => {
                 onChange={setAccountType}
               />
 
-              {/* Chave PIX */}
               <div className="flex flex-col">
                 <label className="text-[10px] font-black uppercase text-purple-400 mb-1 block ml-1">Chave PIX</label>
                 <input
@@ -442,7 +415,6 @@ const handleFinalize = async () => {
                 />
               </div>
 
-              {/* Agência */}
               <div className="flex flex-col">
                 <label className="text-[10px] font-black uppercase text-purple-400 mb-1 block ml-1">Agência</label>
                 <input
@@ -453,7 +425,6 @@ const handleFinalize = async () => {
                 />
               </div>
 
-              {/* Conta */}
               <div className="flex flex-col">
                 <label className="text-[10px] font-black uppercase text-purple-400 mb-1 block ml-1">Conta com Dígito</label>
                 <input
@@ -490,7 +461,6 @@ const handleFinalize = async () => {
                   className="flex items-center gap-2 bg-purple-50 text-[#4a1d7a] px-3 py-1.5 rounded-full text-[11px] font-black border border-purple-100"
                 >
                   {item.description}
-
                   <Trash2
                     size={12}
                     className="cursor-pointer text-red-400 hover:text-red-600 transition-colors"
