@@ -44,7 +44,7 @@ export default function DonorProfile() {
     email: "",
     cpf: "",
     phone: "",
-    bio: "",
+    description: "",
   });
 
   // CARREGAR PERFIL E HISTÓRICO
@@ -64,7 +64,7 @@ export default function DonorProfile() {
           email: profile.email || "",
           cpf: profile.cpf || "",
           phone: profile.phone || "",
-          bio: profile.bio || "",
+          description: profile.description || "",
         });
 
         setDonationHistory(history);
@@ -96,7 +96,7 @@ export default function DonorProfile() {
 
       const profilePayload: UpdateProfileDTO = {
         contactNumber: donorData.phone,
-        bio: donorData.bio || "", 
+        description: donorData.description || "", 
       };
       await DonorService.updateProfile(profilePayload);
 
@@ -107,7 +107,7 @@ export default function DonorProfile() {
         email: freshData.email || "",
         cpf: freshData.cpf || "",
         phone: freshData.phone || "",
-        bio: freshData.bio || "",
+        description: freshData.description || "",
       });
 
       setIsEditingProfile(false);
@@ -333,12 +333,12 @@ export default function DonorProfile() {
                       <textarea
                         className="w-full mt-1 px-3 py-2 border rounded-xl outline-none min-h-[100px] resize-none focus:ring-2 focus:ring-purple-500 border-gray-100"
                         placeholder="Conte um pouco sobre você..."
-                        value={donorData.bio}
-                        onChange={(e) => setDonorData({ ...donorData, bio: e.target.value })}
+                        value={donorData.description}
+                        onChange={(e) => setDonorData({ ...donorData, description: e.target.value })}
                       />
                     ) : (
                       <p className="text-gray-700 italic leading-relaxed">
-                        {donorData.bio || "Nenhuma biografia informada."}
+                        {donorData.description || "Nenhuma biografia informada."}
                       </p>
                     )}
                   </div>

@@ -4,7 +4,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export interface UpdateProfileDTO {
   contactNumber?: string;
-  bio?: string;
+  description?: string;
 }
 
 export interface DonorProfileData {
@@ -13,7 +13,7 @@ export interface DonorProfileData {
   cpf: string;
   phone: string;
   avatarUrl: string | null;
-  bio: string;
+  description: string;
   isNewProfile?: boolean; // Campo extra para controle de modal
 }
 
@@ -58,7 +58,7 @@ export const DonorService = {
           cpf: "",
           phone: "",
           avatarUrl: null,
-          bio: "",
+          description: "",
           isNewProfile: true // Identificador para abrir o modal no frontend
         };
       }
@@ -123,7 +123,7 @@ async getDonationHistory(): Promise<DonationHistory[]> {
   }
 },
   _mapProfileData(data: any): DonorProfileData {
-    if (!data) return { name: "", email: "", cpf: "", phone: "", avatarUrl: null, bio: "" };
+    if (!data) return { name: "", email: "", cpf: "", phone: "", avatarUrl: null, description: "" };
 
     const donor = data.donor || data;
     const user = donor.user || data.user || {};
@@ -134,7 +134,7 @@ async getDonationHistory(): Promise<DonationHistory[]> {
       cpf: donor.cpf || "",
       phone: data.contactNumber || donor.contactNumber || "",
       avatarUrl: this._formatImageUrl(data.avatarUrl || donor.profile?.avatarUrl),
-      bio: data.bio || ""
+      description: data.description || ""
     };
   }
 };
