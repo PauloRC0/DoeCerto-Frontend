@@ -1,17 +1,38 @@
 import { api } from './api';
 
+
+export interface AddressData {
+  street: string;
+  number: string;
+  complement?: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+}
+
 export interface OngUpdateData {
   description?: string;
   contactNumber?: string;
   websiteUrls?: string[];
   yearsOfOperation?: number;
   categoryIds?: number[];
+  address?: AddressData; 
 }
 
 export const OngSetupService = {
   async getCategories() {
     const { data } = await api<any>('/categories?take=100');
     return data?.data || data || [];
+  },
+
+  async updateAddress(address: AddressData) {
+    return api('/addresses', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(address),
+    });
   },
 
   async updateProfileData(data: OngUpdateData) {
@@ -23,20 +44,27 @@ export const OngSetupService = {
       url = `https://${url}`;
     }
 
-    const payload = {
+    
+    const profilePayload = {
       description: data.description || '',
       contactNumber: data.contactNumber || '',
-      // Ajustado para Array conforme exigido pelo seu DTO (@IsArray)
       website: url ? [url] : [], 
       categoryIds: data.categoryIds ? data.categoryIds.map(Number) : [],
       yearsOfOperation: data.yearsOfOperation || null,
     };
 
-    return api('/ongs/me/profile', {
+    const profileResponse = await api('/ongs/me/profile', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(profilePayload),
     });
+
+    
+    if (data.address) {
+      await this.updateAddress(data.address);
+    }
+
+    return profileResponse;
   },
 
   async updateProfileImages(
