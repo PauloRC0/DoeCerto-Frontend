@@ -86,7 +86,6 @@ export default function OngSetupProfile() {
           setOngId(profile.id);
           setOngName(profile.name || "Minha ONG");
 
-          // CORREÇÃO: Usando 'description' em vez de 'about' para alinhar com o DTO
           setDescription(profile.description || "");
           setPhone(profile.contactNumber || "");
           setWebsite(profile.website || "");
@@ -98,11 +97,15 @@ export default function OngSetupProfile() {
             console.error("Erro ao carregar wishlist:", err);
           }
 
-          if (profile.address) {
-            const addr = typeof profile.address === 'object'
-              ? `${profile.address.city || ''}${profile.address.state ? ' - ' + profile.address.state : ''}`
-              : profile.address;
-            setAddress(addr);
+          if (profile.address && typeof profile.address === 'object') {
+            setStreet(profile.address.street || "");
+            setNumber(profile.address.number || "");
+            setComplement(profile.address.complement || "");
+            setNeighborhood(profile.address.neighborhood || "");
+            setCity(profile.address.city || "");
+            setState(profile.address.state || "");
+            setZipCode(profile.address.zipCode || "");
+            setCountry(profile.address.country || "Brasil");
           }
 
           if (profile.yearsOfOperation) {
@@ -175,6 +178,25 @@ export default function OngSetupProfile() {
     }
   };
 
+  const handleCEPBlur = async () => {
+    const cleanCEP = zipCode.replace(/\D/g, "");
+    if (cleanCEP.length !== 8) return;
+
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cleanCEP}/json/`);
+      const data = await res.json();
+
+      if (!data.erro) {
+        setStreet(data.logradouro);
+        setNeighborhood(data.bairro);
+        setCity(data.localidade);
+        setState(data.uf);
+      }
+    } catch (error) {
+      console.error("Erro ao buscar CEP:", error);
+    }
+  };
+
   const handleFinalize = async () => {
     setLoading(true);
     try {
@@ -184,6 +206,16 @@ export default function OngSetupProfile() {
         websiteUrls: website ? [website] : [],
         categoryIds: selectedCategoryIds,
         yearsOfOperation: years ? Number(years) : undefined,
+        address: {
+          street,
+          number,
+          complement,
+          neighborhood,
+          city,
+          state,
+          zipCode,
+          country,
+        },
       });
 
       if (logoFile || bannerFile) {
@@ -304,6 +336,7 @@ export default function OngSetupProfile() {
                   placeholder="CEP"
                   value={zipCode}
                   onChange={(e) => setZipCode(e.target.value)}
+                  onBlur={handleCEPBlur}
                 />
                 <InputGroup
                   icon={Globe2}
@@ -361,7 +394,10 @@ export default function OngSetupProfile() {
                     placeholder="UF"
                     value={state}
                     maxLength={2}
-                    onChange={(e) => setState(e.target.value.toUpperCase())}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^a-zA-Z]/g, ""); 
+                      setState(value.toUpperCase());
+                    }}
                   />
                 </div>
               </div>
